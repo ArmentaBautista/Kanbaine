@@ -1,0 +1,82 @@
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject AppState AppState
+@implements IDisposable
+
+<div class="header-actions">
+    @if (_isLoading)
+    {
+        <span class="user-info">Cargando...</span>
+    }
+    else if (_isAuthenticated)
+    {
+        <span class="user-info">@_userName</span>
+        <button class="btn-logout" @onclick="HandleLogout">Cerrar Sesión</button>
+    }
+    else
+    {
+        <a href="/login" class="btn-login">Iniciar Sesión</a>
+    }
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private bool _isAuthenticated = false;
+    private string _userName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        AppState.OnAuthStateChanged += HandleAuthStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAuthState();
+        }
+    }
+
+    private async Task CheckAuthState()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+            _userName = authState.User.FindFirst("FullName")?.Value ?? 
+                        authState.User.Identity?.Name ?? 
+                        string.Empty;
+        }
+        catch
+        {
+            _isAuthenticated = false;
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleAuthStateChanged()
+    {
+        _isAuthenticated = AppState.IsAuthenticated;
+        _userName = AppState.CurrentUser?.FullName ?? string.Empty;
+        _isLoading = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthStateProvider.LogoutAsync();
+        _isAuthenticated = false;
+        _userName = string.Empty;
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    public void Dispose()
+    {
+        AppState.OnAuthStateChanged -= HandleAuthStateChanged;
+    }
+}

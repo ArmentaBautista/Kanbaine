@@ -1,0 +1,123 @@
+@page "/login"
+@rendermode InteractiveServer
+@using KanbanRedmine.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Iniciar Sesión - Kanban Redmine</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Kanban Redmine</h1>
+            <p>Inicia sesión con tu cuenta de Redmine</p>
+        </div>
+        
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+            <DataAnnotationsValidator />
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+            
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <InputText id="username" @bind-Value="loginModel.Username" 
+                           class="form-control" placeholder="Tu usuario de Redmine"
+                           disabled="@isLoading" />
+                <ValidationMessage For="@(() => loginModel.Username)" />
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <InputText id="password" @bind-Value="loginModel.Password" 
+                           type="password" class="form-control" 
+                           placeholder="Tu contraseña"
+                           disabled="@isLoading" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner-small"></span>
+                    <span>Iniciando sesión...</span>
+                }
+                else
+                {
+                    <span>Iniciar Sesión</span>
+                }
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+    private bool _initialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _initialized = true;
+            // Si ya está autenticado, redirigir al tablero
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                Navigation.NavigateTo("/kanban");
+            }
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+        
+        try
+        {
+            var result = await AuthStateProvider.LoginAsync(loginModel.Username, loginModel.Password);
+            
+            if (result != null)
+            {
+                Navigation.NavigateTo("/kanban");
+            }
+            else
+            {
+                errorMessage = "Usuario o contraseña incorrectos. Verifica tus credenciales de Redmine.";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "No se pudo conectar con el servidor de Redmine. Verifique su conexión de red.";
+        }
+        catch (TaskCanceledException)
+        {
+            errorMessage = "La conexión tardó demasiado. Por favor intente de nuevo.";
+        }
+        catch (Exception)
+        {
+            errorMessage = "Error inesperado al conectar con Redmine.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El usuario es requerido")]
+        public string Username { get; set; } = string.Empty;
+        
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,160 @@
+@inject IRedmineService RedmineService
+@inject AppState AppState
+@inject NotificationService Notification
+
+<div class="kanban-board">
+    @if (_isLoading)
+    {
+        <div class="kanban-loading">
+            <LoadingSpinner Message="Cargando tareas..." />
+        </div>
+    }
+    else if (_errorMessage != null)
+    {
+        <div class="kanban-error">
+            <p>@_errorMessage</p>
+            <button class="btn btn-primary" @onclick="LoadData">Reintentar</button>
+        </div>
+    }
+    else
+    {
+        @foreach (var column in _columns)
+        {
+            <KanbanColumn Column="column" OnIssueMoved="HandleIssueMoved" />
+        }
+    }
+</div>
+
+@code {
+    private List<KanbanColumnData> _columns = new();
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _errorMessage = "No hay sesión activa";
+                return;
+            }
+
+            // Obtener estados y tareas en paralelo
+            var statusesTask = RedmineService.GetStatusesAsync(apiKey);
+            var issuesTask = RedmineService.GetMyIssuesAsync(apiKey);
+
+            await Task.WhenAll(statusesTask, issuesTask);
+
+            var statuses = await statusesTask;
+            var issues = await issuesTask;
+
+            // Crear columnas basadas en los estados
+            _columns = statuses
+                .Where(s => !s.IsClosed) // Solo mostrar estados no cerrados
+                .OrderBy(s => s.Id)
+                .Select(status => new KanbanColumnData
+                {
+                    Status = status,
+                    Issues = issues
+                        .Where(i => i.Status?.Id == status.Id)
+                        .OrderByDescending(i => i.Priority?.Id ?? 0)
+                        .ThenBy(i => i.DueDate)
+                        .ToList()
+                })
+                .ToList();
+
+            // Si no hay columnas, mostrar mensaje
+            if (_columns.Count == 0)
+            {
+                _errorMessage = "No se encontraron estados configurados en Redmine";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleIssueMoved(IssueMoveEventArgs args)
+    {
+        var apiKey = AppState.ApiKey;
+        if (string.IsNullOrEmpty(apiKey)) 
+        {
+            Notification.ShowError("Sesión no válida. Por favor, inicie sesión nuevamente.");
+            return;
+        }
+
+        // Encontrar el issue y las columnas
+        var sourceColumn = _columns.FirstOrDefault(c => c.Issues.Any(i => i.Id == args.IssueId));
+        var targetColumn = _columns.FirstOrDefault(c => c.Status.Id == args.NewStatusId);
+
+        if (sourceColumn == null || targetColumn == null) return;
+
+        var issue = sourceColumn.Issues.FirstOrDefault(i => i.Id == args.IssueId);
+        if (issue == null) return;
+        
+        // No hacer nada si es la misma columna
+        if (sourceColumn.Status.Id == targetColumn.Status.Id) return;
+
+        // Actualización optimista: mover visualmente primero
+        sourceColumn.Issues.Remove(issue);
+        
+        // Guardar estado anterior para rollback
+        var previousStatus = issue.Status;
+        
+        // Actualizar el estado del issue localmente
+        if (issue.Status != null)
+        {
+            issue.Status = new RedmineReference 
+            { 
+                Id = targetColumn.Status.Id, 
+                Name = targetColumn.Status.Name 
+            };
+        }
+        
+        targetColumn.Issues.Insert(0, issue);
+        StateHasChanged();
+
+        // Intentar actualizar en Redmine
+        var result = await RedmineService.UpdateIssueStatusWithResultAsync(apiKey, args.IssueId, args.NewStatusId);
+
+        if (!result.Success)
+        {
+            // Rollback si falla
+            targetColumn.Issues.Remove(issue);
+            issue.Status = previousStatus;
+            sourceColumn.Issues.Insert(0, issue);
+            StateHasChanged();
+            
+            Notification.ShowError(result.ErrorMessage ?? "Error al actualizar el estado.");
+        }
+        else
+        {
+            Notification.ShowSuccess($"Tarea #{args.IssueId} movida a '{targetColumn.Status.Name}'");
+        }
+    }
+
+    /// <summary>
+    /// Recargar datos del tablero
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        await LoadData();
+    }
+}

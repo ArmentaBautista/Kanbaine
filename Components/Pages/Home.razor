@@ -1,0 +1,33 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject CustomAuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Kanban Redmine</PageTitle>
+
+<LoadingSpinner Message="Cargando..." />
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    Navigation.NavigateTo("/kanban");
+                }
+                else
+                {
+                    Navigation.NavigateTo("/login");
+                }
+            }
+            catch
+            {
+                Navigation.NavigateTo("/login");
+            }
+        }
+    }
+}

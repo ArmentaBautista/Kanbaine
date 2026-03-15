@@ -1,0 +1,103 @@
+@using Microsoft.JSInterop
+
+<div class="kanban-column @(_isDragOver ? "drag-over" : "")"
+     @ondragover="HandleDragOver"
+     @ondragover:preventDefault
+     @ondragleave="HandleDragLeave"
+     @ondrop="HandleDrop"
+     @ondrop:preventDefault
+     data-status-id="@Column.Status.Id">
+    
+    <div class="kanban-column-header">
+        <h3 class="kanban-column-title">@Column.Status.Name</h3>
+        <span class="kanban-column-count @(Column.IsOverWipLimit ? "over-limit" : "")">
+            @Column.Count
+            @if (Column.WipLimit > 0)
+            {
+                <span>/ @Column.WipLimit</span>
+            }
+        </span>
+    </div>
+    
+    <div class="kanban-column-body">
+        @foreach (var issue in Column.Issues)
+        {
+            <KanbanCard Issue="issue" OnDragStarted="HandleCardDragStarted" />
+        }
+        
+        @if (Column.Issues.Count == 0)
+        {
+            <div class="kanban-column-empty">
+                <span>Sin tareas</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public KanbanColumnData Column { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<IssueMoveEventArgs> OnIssueMoved { get; set; }
+
+    private bool _isDragOver = false;
+    private static int? _draggingIssueId;
+
+    private void HandleCardDragStarted(int issueId)
+    {
+        _draggingIssueId = issueId;
+    }
+
+    private void HandleDragOver(DragEventArgs e)
+    {
+        _isDragOver = true;
+    }
+
+    private void HandleDragLeave(DragEventArgs e)
+    {
+        _isDragOver = false;
+    }
+
+    private async Task HandleDrop(DragEventArgs e)
+    {
+        _isDragOver = false;
+
+        if (_draggingIssueId.HasValue)
+        {
+            var issueId = _draggingIssueId.Value;
+            _draggingIssueId = null;
+
+            // No hacer nada si se suelta en la misma columna
+            if (Column.Issues.Any(i => i.Id == issueId))
+            {
+                return;
+            }
+
+            await OnIssueMoved.InvokeAsync(new IssueMoveEventArgs
+            {
+                IssueId = issueId,
+                NewStatusId = Column.Status.Id
+            });
+        }
+    }
+}
+
+<style>
+    .kanban-column-empty {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        color: #999;
+        font-style: italic;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+    
+    .kanban-column-count.over-limit {
+        background-color: #e74c3c;
+        color: white;
+    }
+</style>

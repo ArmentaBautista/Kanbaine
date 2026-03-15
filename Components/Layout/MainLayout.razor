@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <header class="top-header">
+        <div class="header-brand">
+            <a href="/">
+                <span class="brand-icon">📋</span>
+                <span class="brand-text">Kanban Redmine</span>
+            </a>
+        </div>
+        <HeaderAuth />
+    </header>
+    
+    <main class="main-content">
+        @Body
+    </main>
+</div>
+
+<ToastContainer />
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

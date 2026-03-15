@@ -1,0 +1,89 @@
+@page "/kanban"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject AppState AppState
+
+<PageTitle>Tablero Kanban - Redmine</PageTitle>
+
+@if (_isLoading)
+{
+    <LoadingSpinner Message="Cargando tablero..." />
+}
+else if (_isAuthenticated)
+{
+    <div class="kanban-page">
+        <div class="kanban-toolbar">
+            <h1>Tablero Kanban</h1>
+            <div class="toolbar-actions">
+                <span class="user-welcome">@_userName</span>
+                <button class="btn-refresh" @onclick="RefreshBoard" disabled="@_isRefreshing">
+                    @if (_isRefreshing)
+                    {
+                        <span>Actualizando...</span>
+                    }
+                    else
+                    {
+                        <span>🔄 Actualizar</span>
+                    }
+                </button>
+            </div>
+        </div>
+        
+        <KanbanBoard @ref="_kanbanBoard" />
+    </div>
+}
+
+@code {
+    private bool _isLoading = true;
+    private bool _isAuthenticated = false;
+    private bool _isRefreshing = false;
+    private string _userName = string.Empty;
+    private KanbanBoard? _kanbanBoard;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+                
+                if (!_isAuthenticated)
+                {
+                    Navigation.NavigateTo("/login");
+                    return;
+                }
+                
+                _userName = authState.User.FindFirst("FullName")?.Value ?? 
+                            AppState.CurrentUser?.FullName ?? 
+                            "Usuario";
+            }
+            catch
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+            finally
+            {
+                _isLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task RefreshBoard()
+    {
+        if (_kanbanBoard != null)
+        {
+            _isRefreshing = true;
+            StateHasChanged();
+            
+            await _kanbanBoard.RefreshAsync();
+            
+            _isRefreshing = false;
+            StateHasChanged();
+        }
+    }
+}

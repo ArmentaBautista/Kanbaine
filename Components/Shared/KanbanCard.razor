@@ -1,0 +1,160 @@
+<div class="kanban-card @Issue.PriorityCssClass"
+     draggable="true"
+     @ondragstart="HandleDragStart"
+     @ondragend="HandleDragEnd">
+    
+    <div class="priority-indicator"></div>
+    
+    <div class="kanban-card-content">
+        <div class="kanban-card-header">
+            <span class="kanban-card-id">#@Issue.Id</span>
+            @if (Issue.Tracker != null)
+            {
+                <span class="kanban-card-tracker">@Issue.Tracker.Name</span>
+            }
+        </div>
+        
+        <h4 class="kanban-card-title" title="@Issue.Subject">
+            @TruncateText(Issue.Subject, 80)
+        </h4>
+        
+        <div class="kanban-card-meta">
+            @if (Issue.Project != null)
+            {
+                <span class="kanban-card-project" title="@Issue.Project.Name">
+                    @TruncateText(Issue.Project.Name, 20)
+                </span>
+            }
+            
+            @if (Issue.DueDate.HasValue)
+            {
+                <span class="kanban-card-due @(Issue.IsOverdue ? "overdue" : Issue.IsDueSoon ? "due-soon" : "")">
+                    📅 @Issue.DueDate.Value.ToString("dd/MM")
+                </span>
+            }
+        </div>
+        
+        @if (Issue.Priority != null)
+        {
+            <div class="kanban-card-footer">
+                <span class="kanban-card-priority" title="Prioridad: @Issue.Priority.Name">
+                    @GetPriorityIcon(Issue.Priority.Name)
+                    @Issue.Priority.Name
+                </span>
+                
+                @if (Issue.DoneRatio > 0)
+                {
+                    <div class="kanban-card-progress" title="@Issue.DoneRatio% completado">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @Issue.DoneRatio%"></div>
+                        </div>
+                        <span class="progress-text">@Issue.DoneRatio%</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RedmineIssue Issue { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<int> OnDragStarted { get; set; }
+
+    private bool _isDragging = false;
+
+    private async Task HandleDragStart(DragEventArgs e)
+    {
+        _isDragging = true;
+        await OnDragStarted.InvokeAsync(Issue.Id);
+    }
+
+    private void HandleDragEnd(DragEventArgs e)
+    {
+        _isDragging = false;
+    }
+
+    private static string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
+
+    private static string GetPriorityIcon(string? priorityName)
+    {
+        return priorityName?.ToLower() switch
+        {
+            "low" or "baja" => "🟢",
+            "normal" => "🔵",
+            "high" or "alta" => "🟠",
+            "urgent" or "urgente" => "🔴",
+            "immediate" or "inmediata" => "🟣",
+            _ => "⚪"
+        };
+    }
+}
+
+<style>
+    .kanban-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .kanban-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+    }
+    
+    .kanban-card-tracker {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+    }
+    
+    .kanban-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .kanban-card-priority {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #666;
+    }
+    
+    .kanban-card-progress {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .progress-bar {
+        width: 40px;
+        height: 6px;
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background-color: #4caf50;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        color: #666;
+        font-size: 0.7rem;
+    }
+</style>

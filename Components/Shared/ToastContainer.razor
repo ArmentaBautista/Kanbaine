@@ -1,0 +1,90 @@
+@inject NotificationService NotificationService
+@implements IDisposable
+
+<div class="toast-container">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast toast-@toast.Type.ToString().ToLower() @(toast.IsHiding ? "toast-hiding" : "")">
+            <span class="toast-icon">@GetIcon(toast.Type)</span>
+            <span class="toast-message">@toast.Message</span>
+            <button class="toast-close" @onclick="() => RemoveToast(toast.Id)">&times;</button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToastState> _toasts = new();
+
+    protected override void OnInitialized()
+    {
+        NotificationService.OnShow += ShowToast;
+        NotificationService.OnHide += HideToast;
+    }
+
+    private async void ShowToast(ToastNotification notification)
+    {
+        var state = new ToastState
+        {
+            Id = notification.Id,
+            Message = notification.Message,
+            Type = notification.Type,
+            DurationMs = notification.DurationMs
+        };
+
+        await InvokeAsync(() =>
+        {
+            _toasts.Add(state);
+            StateHasChanged();
+        });
+
+        // Auto-hide después de la duración
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(notification.DurationMs);
+            await InvokeAsync(() => RemoveToast(notification.Id));
+        });
+    }
+
+    private void HideToast(Guid id)
+    {
+        InvokeAsync(() => RemoveToast(id));
+    }
+
+    private async void RemoveToast(Guid id)
+    {
+        var toast = _toasts.FirstOrDefault(t => t.Id == id);
+        if (toast != null)
+        {
+            toast.IsHiding = true;
+            StateHasChanged();
+            
+            await Task.Delay(300); // Esperar animación
+            _toasts.Remove(toast);
+            StateHasChanged();
+        }
+    }
+
+    private string GetIcon(ToastType type) => type switch
+    {
+        ToastType.Success => "✓",
+        ToastType.Error => "✕",
+        ToastType.Warning => "⚠",
+        ToastType.Info => "ℹ",
+        _ => "ℹ"
+    };
+
+    public void Dispose()
+    {
+        NotificationService.OnShow -= ShowToast;
+        NotificationService.OnHide -= HideToast;
+    }
+
+    private class ToastState
+    {
+        public Guid Id { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public ToastType Type { get; set; }
+        public int DurationMs { get; set; }
+        public bool IsHiding { get; set; }
+    }
+}
