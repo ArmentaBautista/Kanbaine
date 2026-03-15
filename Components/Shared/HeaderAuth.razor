@@ -11,6 +11,10 @@
     }
     else if (_isAuthenticated)
     {
+        <nav class="header-nav">
+            <a href="/kanban" class="nav-link @GetActiveClass("/kanban")">Kanban</a>
+            <a href="/dashboard" class="nav-link @GetActiveClass("/dashboard")">Dashboard</a>
+        </nav>
         <span class="user-info">@_userName</span>
         <button class="btn-logout" @onclick="HandleLogout">Cerrar Sesión</button>
     }
@@ -65,6 +69,12 @@
         _userName = AppState.CurrentUser?.FullName ?? string.Empty;
         _isLoading = false;
         InvokeAsync(StateHasChanged);
+    }
+    
+    private string GetActiveClass(string path)
+    {
+        var currentUri = Navigation.Uri;
+        return currentUri.Contains(path, StringComparison.OrdinalIgnoreCase) ? "active" : "";
     }
 
     private async Task HandleLogout()

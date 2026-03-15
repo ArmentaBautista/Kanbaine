@@ -160,9 +160,9 @@ KanbanRedmine/
 - [ ] **OPT-19**: Guardar configuración de filtros por usuario
 
 ### Métricas y Reportes
-- [ ] **OPT-20**: Dashboard con estadísticas (tareas por estado, por proyecto)
-- [ ] **OPT-21**: Gráfico de burndown básico
-- [ ] **OPT-22**: Historial de cambios de estado
+- [x] **OPT-20**: Dashboard con estadísticas (tareas por estado, por proyecto)
+- [x] **OPT-21**: Gráfico de burndown básico
+- [x] **OPT-22**: Historial de cambios de estado
 
 ### Personalización
 - [ ] **OPT-23**: Permitir reordenar columnas

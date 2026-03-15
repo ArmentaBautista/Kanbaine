@@ -1,0 +1,428 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject CustomAuthenticationStateProvider AuthStateProvider
+@inject IRedmineService RedmineService
+@inject AppState AppState
+
+<PageTitle>Dashboard - Kanban Redmine</PageTitle>
+
+@if (_isLoading)
+{
+    <LoadingSpinner Message="Cargando estadísticas..." />
+}
+else if (_isAuthenticated)
+{
+    <div class="dashboard-page">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <button class="btn-refresh" @onclick="RefreshData" disabled="@_isRefreshing">
+                @if (_isRefreshing)
+                {
+                    <span>Actualizando...</span>
+                }
+                else
+                {
+                    <span>Actualizar</span>
+                }
+            </button>
+        </div>
+        
+        @if (_errorMessage != null)
+        {
+            <div class="dashboard-error">
+                <p>@_errorMessage</p>
+                <button class="btn btn-primary" @onclick="RefreshData">Reintentar</button>
+            </div>
+        }
+        else
+        {
+            <!-- Tarjetas de resumen -->
+            <div class="stats-cards">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <div class="stat-value">@_stats.TotalIssues</div>
+                        <div class="stat-label">Total de Tareas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-open">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-value">@_stats.OpenIssues</div>
+                        <div class="stat-label">Tareas Abiertas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-closed">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-value">@_stats.ClosedIssues</div>
+                        <div class="stat-label">Tareas Cerradas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-progress">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <div class="stat-value">@GetCompletionRate()%</div>
+                        <div class="stat-label">Completadas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráficos y tablas -->
+            <div class="dashboard-grid">
+                <!-- Tareas por Estado -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Estado</h3>
+                    <div class="chart-container">
+                        @foreach (var stat in _stats.IssuesByStatus)
+                        {
+                            <div class="bar-item">
+                                <div class="bar-label">
+                                    <span class="status-dot" style="background-color: @stat.Color"></span>
+                                    @stat.StatusName
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" style="width: @stat.Percentage%; background-color: @stat.Color"></div>
+                                </div>
+                                <div class="bar-value">@stat.Count</div>
+                            </div>
+                        }
+                        @if (!_stats.IssuesByStatus.Any())
+                        {
+                            <p class="no-data">No hay datos disponibles</p>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Tareas por Proyecto -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Proyecto</h3>
+                    <div class="chart-container">
+                        @foreach (var stat in _stats.IssuesByProject.Take(8))
+                        {
+                            <div class="bar-item">
+                                <div class="bar-label project-label" title="@stat.ProjectName">
+                                    @TruncateText(stat.ProjectName, 25)
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill bar-fill-project" style="width: @stat.Percentage%"></div>
+                                </div>
+                                <div class="bar-value">@stat.Count</div>
+                            </div>
+                        }
+                        @if (!_stats.IssuesByProject.Any())
+                        {
+                            <p class="no-data">No hay datos disponibles</p>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Tareas por Prioridad -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Prioridad</h3>
+                    <div class="priority-grid">
+                        @foreach (var stat in _stats.IssuesByPriority)
+                        {
+                            <div class="priority-item" style="border-left-color: @stat.Color">
+                                <div class="priority-count">@stat.Count</div>
+                                <div class="priority-name">@stat.PriorityName</div>
+                            </div>
+                        }
+                        @if (!_stats.IssuesByPriority.Any())
+                        {
+                            <p class="no-data">No hay datos disponibles</p>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Progreso Burndown simplificado -->
+                <div class="dashboard-card">
+                    <h3>Progreso de Tareas</h3>
+                    <div class="burndown-container">
+                        <div class="burndown-visual">
+                            <div class="burndown-bar">
+                                <div class="burndown-closed" style="width: @GetCompletionRate()%"></div>
+                            </div>
+                            <div class="burndown-legend">
+                                <span class="legend-closed">Cerradas: @_stats.ClosedIssues</span>
+                                <span class="legend-open">Abiertas: @_stats.OpenIssues</span>
+                            </div>
+                        </div>
+                        @if (_stats.TotalIssues > 0)
+                        {
+                            <div class="burndown-message">
+                                @if (GetCompletionRate() >= 80)
+                                {
+                                    <span class="message-success">¡Excelente progreso!</span>
+                                }
+                                else if (GetCompletionRate() >= 50)
+                                {
+                                    <span class="message-info">Buen avance, sigue así</span>
+                                }
+                                else
+                                {
+                                    <span class="message-warning">Hay trabajo pendiente</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Historial de cambios de estado -->
+            <div class="dashboard-card full-width">
+                <h3>Historial de Cambios Recientes</h3>
+                <div class="history-container">
+                    @if (_statusChanges.Any())
+                    {
+                        <div class="history-list">
+                            @foreach (var change in _statusChanges)
+                            {
+                                <div class="history-item">
+                                    <div class="history-time">
+                                        <span class="time-ago">@FormatTimeAgo(change.ChangedOn)</span>
+                                        <span class="time-date">@change.ChangedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    <div class="history-content">
+                                        <div class="history-title">
+                                            <a href="/kanban" class="issue-link">#@change.IssueId</a>
+                                            <span class="issue-subject">@TruncateText(change.IssueSubject, 50)</span>
+                                        </div>
+                                        <div class="history-change">
+                                            <span class="status-badge old">@(change.OldStatus ?? "—")</span>
+                                            <span class="arrow">→</span>
+                                            <span class="status-badge new">@(change.NewStatus ?? "—")</span>
+                                        </div>
+                                        <div class="history-user">por @change.UserName</div>
+                                        @if (!string.IsNullOrWhiteSpace(change.Notes))
+                                        {
+                                            <div class="history-notes">@TruncateText(change.Notes, 100)</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="no-data">No hay cambios de estado recientes</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _isLoading = true;
+    private bool _isAuthenticated = false;
+    private bool _isRefreshing = false;
+    private string? _errorMessage;
+    private DashboardStats _stats = new();
+    private List<StatusChange> _statusChanges = new();
+    
+    // Colores para estados
+    private static readonly Dictionary<string, string> StatusColors = new()
+    {
+        { "nuevo", "#3b82f6" },
+        { "new", "#3b82f6" },
+        { "en progreso", "#f59e0b" },
+        { "in progress", "#f59e0b" },
+        { "resuelto", "#10b981" },
+        { "resolved", "#10b981" },
+        { "cerrado", "#6b7280" },
+        { "closed", "#6b7280" },
+        { "rechazado", "#ef4444" },
+        { "rejected", "#ef4444" },
+        { "feedback", "#8b5cf6" },
+        { "en espera", "#ec4899" },
+        { "pendiente", "#ec4899" }
+    };
+    
+    // Colores para prioridades
+    private static readonly Dictionary<string, string> PriorityColors = new()
+    {
+        { "inmediata", "#dc2626" },
+        { "immediate", "#dc2626" },
+        { "urgente", "#ef4444" },
+        { "urgent", "#ef4444" },
+        { "alta", "#f97316" },
+        { "high", "#f97316" },
+        { "normal", "#3b82f6" },
+        { "baja", "#10b981" },
+        { "low", "#10b981" }
+    };
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                _isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+                
+                if (!_isAuthenticated)
+                {
+                    Navigation.NavigateTo("/login");
+                    return;
+                }
+                
+                await LoadData();
+            }
+            catch
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+            finally
+            {
+                _isLoading = false;
+                StateHasChanged();
+            }
+        }
+    }
+    
+    private async Task LoadData()
+    {
+        _errorMessage = null;
+        
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                _errorMessage = "No hay sesión activa";
+                return;
+            }
+            
+            // Cargar datos en paralelo
+            var issuesTask = RedmineService.GetAllMyIssuesAsync(apiKey);
+            var statusesTask = RedmineService.GetStatusesAsync(apiKey);
+            var changesTask = RedmineService.GetRecentStatusChangesAsync(apiKey, 15);
+            
+            await Task.WhenAll(issuesTask, statusesTask, changesTask);
+            
+            var issues = await issuesTask;
+            var statuses = await statusesTask;
+            _statusChanges = await changesTask;
+            
+            // Calcular estadísticas
+            _stats = CalculateStats(issues, statuses);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error al cargar datos: {ex.Message}";
+        }
+    }
+    
+    private DashboardStats CalculateStats(List<RedmineIssue> issues, List<RedmineStatus> statuses)
+    {
+        var stats = new DashboardStats
+        {
+            TotalIssues = issues.Count,
+            OpenIssues = issues.Count(i => i.Status != null && !IsClosedStatus(i.Status.Name, statuses)),
+            ClosedIssues = issues.Count(i => i.Status != null && IsClosedStatus(i.Status.Name, statuses))
+        };
+        
+        // Agrupar por estado
+        stats.IssuesByStatus = issues
+            .Where(i => i.Status != null)
+            .GroupBy(i => new { i.Status!.Id, i.Status.Name })
+            .Select(g => new StatusStat
+            {
+                StatusId = g.Key.Id,
+                StatusName = g.Key.Name,
+                Count = g.Count(),
+                Color = GetStatusColor(g.Key.Name),
+                Percentage = stats.TotalIssues > 0 ? Math.Round((double)g.Count() / stats.TotalIssues * 100, 1) : 0
+            })
+            .OrderByDescending(s => s.Count)
+            .ToList();
+        
+        // Agrupar por proyecto
+        stats.IssuesByProject = issues
+            .Where(i => i.Project != null)
+            .GroupBy(i => new { i.Project!.Id, i.Project.Name })
+            .Select(g => new ProjectStat
+            {
+                ProjectId = g.Key.Id,
+                ProjectName = g.Key.Name,
+                Count = g.Count(),
+                Percentage = stats.TotalIssues > 0 ? Math.Round((double)g.Count() / stats.TotalIssues * 100, 1) : 0
+            })
+            .OrderByDescending(s => s.Count)
+            .ToList();
+        
+        // Agrupar por prioridad
+        stats.IssuesByPriority = issues
+            .Where(i => i.Priority != null)
+            .GroupBy(i => new { i.Priority!.Id, i.Priority.Name })
+            .Select(g => new PriorityStat
+            {
+                PriorityId = g.Key.Id,
+                PriorityName = g.Key.Name,
+                Count = g.Count(),
+                Color = GetPriorityColor(g.Key.Name)
+            })
+            .OrderByDescending(s => s.PriorityId)
+            .ToList();
+        
+        return stats;
+    }
+    
+    private bool IsClosedStatus(string statusName, List<RedmineStatus> statuses)
+    {
+        var status = statuses.FirstOrDefault(s => 
+            s.Name.Equals(statusName, StringComparison.OrdinalIgnoreCase));
+        return status?.IsClosed ?? false;
+    }
+    
+    private string GetStatusColor(string statusName)
+    {
+        var key = statusName.ToLowerInvariant();
+        return StatusColors.FirstOrDefault(kv => key.Contains(kv.Key)).Value ?? "#6b7280";
+    }
+    
+    private string GetPriorityColor(string priorityName)
+    {
+        var key = priorityName.ToLowerInvariant();
+        return PriorityColors.FirstOrDefault(kv => key.Contains(kv.Key)).Value ?? "#3b82f6";
+    }
+    
+    private int GetCompletionRate()
+    {
+        if (_stats.TotalIssues == 0) return 0;
+        return (int)Math.Round((double)_stats.ClosedIssues / _stats.TotalIssues * 100);
+    }
+    
+    private string FormatTimeAgo(DateTime dateTime)
+    {
+        var diff = DateTime.Now - dateTime;
+        
+        if (diff.TotalMinutes < 1) return "ahora";
+        if (diff.TotalMinutes < 60) return $"hace {(int)diff.TotalMinutes} min";
+        if (diff.TotalHours < 24) return $"hace {(int)diff.TotalHours} h";
+        if (diff.TotalDays < 7) return $"hace {(int)diff.TotalDays} días";
+        if (diff.TotalDays < 30) return $"hace {(int)(diff.TotalDays / 7)} sem";
+        return $"hace {(int)(diff.TotalDays / 30)} meses";
+    }
+    
+    private string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
+    
+    private async Task RefreshData()
+    {
+        _isRefreshing = true;
+        StateHasChanged();
+        
+        await LoadData();
+        
+        _isRefreshing = false;
+        StateHasChanged();
+    }
+}

@@ -54,6 +54,29 @@ public interface IRedmineService
     /// <param name="apiKey">API Key del usuario</param>
     /// <returns>Lista de proyectos</returns>
     Task<List<RedmineProject>> GetProjectsAsync(string apiKey);
+    
+    /// <summary>
+    /// Obtiene todos los issues del usuario (abiertos y cerrados) para estadísticas
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <returns>Lista de todos los issues</returns>
+    Task<List<RedmineIssue>> GetAllMyIssuesAsync(string apiKey);
+    
+    /// <summary>
+    /// Obtiene un issue con su historial de cambios
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="issueId">ID del issue</param>
+    /// <returns>Issue con journals</returns>
+    Task<IssueWithJournals?> GetIssueWithJournalsAsync(string apiKey, int issueId);
+    
+    /// <summary>
+    /// Obtiene el historial de cambios de estado recientes
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="limit">Número máximo de cambios a obtener</param>
+    /// <returns>Lista de cambios de estado</returns>
+    Task<List<StatusChange>> GetRecentStatusChangesAsync(string apiKey, int limit = 20);
 }
 
 /// <summary>

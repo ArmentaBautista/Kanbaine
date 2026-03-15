@@ -81,5 +81,8 @@ D:\github\KanbanRedmine\obj\Debug\net10.0\ref\KanbanRedmine.dll
 D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Pages\Login.razor.rz.scp.css
 D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Pages\Kanban.razor.rz.scp.css
 D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Shared\ToastContainer.razor.rz.scp.css
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\m2id8dtrio-{0}-t07kapi9i3-t07kapi9i3.gz
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\v5irlraair-{0}-t07kapi9i3-t07kapi9i3.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\KanbanRedmine.sourcelink.json
+D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Pages\Dashboard.razor.rz.scp.css
+D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Shared\HeaderAuth.razor.rz.scp.css
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\m2id8dtrio-{0}-2bfc10r06i-2bfc10r06i.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\v5irlraair-{0}-2bfc10r06i-2bfc10r06i.gz

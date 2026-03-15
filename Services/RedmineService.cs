@@ -254,6 +254,144 @@ public class RedmineService : IRedmineService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<List<RedmineIssue>> GetAllMyIssuesAsync(string apiKey)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var allIssues = new List<RedmineIssue>();
+            
+            // Obtener issues abiertos
+            var openResponse = await client.GetAsync("issues.json?assigned_to_id=me&status_id=open&limit=100");
+            if (openResponse.IsSuccessStatusCode)
+            {
+                var content = await openResponse.Content.ReadAsStringAsync();
+                var issuesResponse = JsonSerializer.Deserialize<IssuesResponse>(content, JsonOptions);
+                if (issuesResponse?.Issues != null)
+                {
+                    allIssues.AddRange(issuesResponse.Issues);
+                }
+            }
+            
+            // Obtener issues cerrados
+            var closedResponse = await client.GetAsync("issues.json?assigned_to_id=me&status_id=closed&limit=100");
+            if (closedResponse.IsSuccessStatusCode)
+            {
+                var content = await closedResponse.Content.ReadAsStringAsync();
+                var issuesResponse = JsonSerializer.Deserialize<IssuesResponse>(content, JsonOptions);
+                if (issuesResponse?.Issues != null)
+                {
+                    allIssues.AddRange(issuesResponse.Issues);
+                }
+            }
+            
+            return allIssues;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener todos los issues");
+            return new List<RedmineIssue>();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<IssueWithJournals?> GetIssueWithJournalsAsync(string apiKey, int issueId)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            
+            var response = await client.GetAsync($"issues/{issueId}.json?include=journals");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener issue {IssueId} con journals. Status: {Status}", 
+                    issueId, response.StatusCode);
+                return null;
+            }
+            
+            var content = await response.Content.ReadAsStringAsync();
+            var issueResponse = JsonSerializer.Deserialize<IssueWithJournalsResponse>(content, JsonOptions);
+            
+            return issueResponse?.Issue;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener issue {IssueId} con journals", issueId);
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<List<StatusChange>> GetRecentStatusChangesAsync(string apiKey, int limit = 20)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var statusChanges = new List<StatusChange>();
+            
+            // Obtener issues recientes (ordenados por actualización)
+            var response = await client.GetAsync($"issues.json?assigned_to_id=me&sort=updated_on:desc&limit={Math.Min(limit, 25)}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener issues recientes. Status: {Status}", response.StatusCode);
+                return statusChanges;
+            }
+            
+            var content = await response.Content.ReadAsStringAsync();
+            var issuesResponse = JsonSerializer.Deserialize<IssuesResponse>(content, JsonOptions);
+            
+            if (issuesResponse?.Issues == null) return statusChanges;
+            
+            // Obtener los estados disponibles para mapear IDs a nombres
+            var statuses = await GetStatusesAsync(apiKey);
+            var statusMap = statuses.ToDictionary(s => s.Id.ToString(), s => s.Name);
+            
+            // Obtener journals de cada issue
+            foreach (var issue in issuesResponse.Issues.Take(10)) // Limitar para rendimiento
+            {
+                var issueWithJournals = await GetIssueWithJournalsAsync(apiKey, issue.Id);
+                if (issueWithJournals?.Journals == null) continue;
+                
+                // Filtrar solo cambios de estado
+                foreach (var journal in issueWithJournals.Journals.OrderByDescending(j => j.CreatedOn))
+                {
+                    var statusDetail = journal.Details
+                        .FirstOrDefault(d => d.Property == "attr" && d.Name == "status_id");
+                    
+                    if (statusDetail != null)
+                    {
+                        statusChanges.Add(new StatusChange
+                        {
+                            IssueId = issue.Id,
+                            IssueSubject = issue.Subject,
+                            UserName = journal.User?.Name ?? "Usuario desconocido",
+                            OldStatus = statusDetail.OldValue != null && statusMap.TryGetValue(statusDetail.OldValue, out var oldName) 
+                                ? oldName : statusDetail.OldValue,
+                            NewStatus = statusDetail.NewValue != null && statusMap.TryGetValue(statusDetail.NewValue, out var newName) 
+                                ? newName : statusDetail.NewValue,
+                            ChangedOn = journal.CreatedOn,
+                            Notes = journal.Notes
+                        });
+                        
+                        if (statusChanges.Count >= limit) break;
+                    }
+                }
+                
+                if (statusChanges.Count >= limit) break;
+            }
+            
+            return statusChanges.OrderByDescending(c => c.ChangedOn).Take(limit).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener historial de cambios de estado");
+            return new List<StatusChange>();
+        }
+    }
+
     /// <summary>
     /// Crea un HttpClient base
     /// </summary>
