@@ -1,0 +1,430 @@
+@inject IRedmineService RedmineService
+@inject AppState AppState
+@inject NotificationService Notification
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="Close">
+        <div class="modal-container" @onclick:stopPropagation>
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <span class="issue-id">#@Issue.Id</span>
+                    @if (Issue.Tracker != null)
+                    {
+                        <span class="issue-tracker">@Issue.Tracker.Name</span>
+                    }
+                </div>
+                <button class="modal-close" @onclick="Close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                @if (_isLoading)
+                {
+                    <div class="modal-loading">
+                        <LoadingSpinner Message="Cargando detalles..." />
+                    </div>
+                }
+                else
+                {
+                    <h2 class="issue-subject">@Issue.Subject</h2>
+                    
+                    <div class="issue-meta-grid">
+                        <div class="meta-item">
+                            <span class="meta-label">Estado</span>
+                            <span class="meta-value status-badge">@(Issue.Status?.Name ?? "—")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Prioridad</span>
+                            <div class="meta-value priority-section">
+                                @if (_isEditingPriority)
+                                {
+                                    <select class="priority-select" @bind="_selectedPriorityId" @onblur="CancelEditPriority">
+                                        @foreach (var priority in _priorities)
+                                        {
+                                            <option value="@priority.Id">@priority.Name</option>
+                                        }
+                                    </select>
+                                    <button class="btn-save-small" @onclick="SavePriority">✓</button>
+                                    <button class="btn-cancel-small" @onclick="CancelEditPriority">✕</button>
+                                }
+                                else
+                                {
+                                    <span class="priority-badge @Issue.PriorityCssClass">
+                                        @(Issue.Priority?.Name ?? "—")
+                                    </span>
+                                    <button class="btn-edit-small" @onclick="StartEditPriority" title="Cambiar prioridad">✎</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Proyecto</span>
+                            <span class="meta-value">@(Issue.Project?.Name ?? "—")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Asignado a</span>
+                            <div class="meta-value assignee-section">
+                                @if (_isEditingAssignee)
+                                {
+                                    <select class="assignee-select" @bind="_selectedAssigneeId">
+                                        <option value="0">Sin asignar</option>
+                                        @foreach (var user in _projectMembers)
+                                        {
+                                            <option value="@user.Id">@user.Name</option>
+                                        }
+                                    </select>
+                                    <button class="btn-save-small" @onclick="SaveAssignee">✓</button>
+                                    <button class="btn-cancel-small" @onclick="CancelEditAssignee">✕</button>
+                                }
+                                else
+                                {
+                                    <span>@(Issue.AssignedTo?.Name ?? "Sin asignar")</span>
+                                    <button class="btn-edit-small" @onclick="StartEditAssignee" title="Reasignar">✎</button>
+                                }
+                            </div>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Autor</span>
+                            <span class="meta-value">@(Issue.Author?.Name ?? "—")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Progreso</span>
+                            <div class="meta-value progress-section">
+                                <div class="progress-bar-large">
+                                    <div class="progress-fill" style="width: @Issue.DoneRatio%"></div>
+                                </div>
+                                <span>@Issue.DoneRatio%</span>
+                            </div>
+                        </div>
+                        @if (Issue.DueDate.HasValue)
+                        {
+                            <div class="meta-item">
+                                <span class="meta-label">Fecha límite</span>
+                                <span class="meta-value @(Issue.IsOverdue ? "overdue" : Issue.IsDueSoon ? "due-soon" : "")">
+                                    @Issue.DueDate.Value.ToString("dd/MM/yyyy")
+                                    @if (Issue.IsOverdue)
+                                    {
+                                        <span class="date-warning">⚠ Vencida</span>
+                                    }
+                                </span>
+                            </div>
+                        }
+                        @if (Issue.EstimatedHours.HasValue)
+                        {
+                            <div class="meta-item">
+                                <span class="meta-label">Horas estimadas</span>
+                                <span class="meta-value">@Issue.EstimatedHours.Value h</span>
+                            </div>
+                        }
+                        <div class="meta-item">
+                            <span class="meta-label">Creado</span>
+                            <span class="meta-value">@Issue.CreatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Actualizado</span>
+                            <span class="meta-value">@Issue.UpdatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Descripción -->
+                    <div class="issue-section">
+                        <h3>Descripción</h3>
+                        <div class="issue-description">
+                            @if (!string.IsNullOrWhiteSpace(Issue.Description))
+                            {
+                                <div class="description-content">@((MarkupString)FormatDescription(Issue.Description))</div>
+                            }
+                            else
+                            {
+                                <p class="no-content">Sin descripción</p>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Comentarios -->
+                    <div class="issue-section">
+                        <h3>Comentarios (@_journals.Count)</h3>
+                        <div class="comments-section">
+                            @if (_journals.Any())
+                            {
+                                <div class="comments-list">
+                                    @foreach (var journal in _journals.Where(j => !string.IsNullOrWhiteSpace(j.Notes)))
+                                    {
+                                        <div class="comment-item">
+                                            <div class="comment-header">
+                                                <span class="comment-author">@(journal.User?.Name ?? "Usuario")</span>
+                                                <span class="comment-date">@journal.CreatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                                            </div>
+                                            <div class="comment-body">@((MarkupString)FormatDescription(journal.Notes!))</div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="no-content">Sin comentarios</p>
+                            }
+                            
+                            <!-- Agregar comentario -->
+                            <div class="add-comment">
+                                <textarea @bind="_newComment" placeholder="Escribe un comentario..." rows="3"></textarea>
+                                <button class="btn-add-comment" @onclick="AddComment" disabled="@(string.IsNullOrWhiteSpace(_newComment) || _isSaving)">
+                                    @if (_isSaving)
+                                    {
+                                        <span>Enviando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Agregar comentario</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+    
+    [Parameter]
+    public RedmineIssue Issue { get; set; } = new();
+    
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    
+    [Parameter]
+    public EventCallback<RedmineIssue> OnIssueUpdated { get; set; }
+    
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private List<IssueJournal> _journals = new();
+    private List<RedmineReference> _priorities = new();
+    private List<RedmineReference> _projectMembers = new();
+    private string _newComment = string.Empty;
+    
+    // Edición de prioridad
+    private bool _isEditingPriority = false;
+    private int _selectedPriorityId;
+    
+    // Edición de asignado
+    private bool _isEditingAssignee = false;
+    private int _selectedAssigneeId;
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && Issue.Id > 0)
+        {
+            await LoadIssueDetails();
+        }
+    }
+    
+    private async Task LoadIssueDetails()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            
+            // Cargar journals y prioridades en paralelo
+            var journalsTask = RedmineService.GetIssueWithJournalsAsync(apiKey, Issue.Id);
+            var prioritiesTask = RedmineService.GetPrioritiesAsync(apiKey);
+            
+            await Task.WhenAll(journalsTask, prioritiesTask);
+            
+            var issueWithJournals = await journalsTask;
+            _priorities = await prioritiesTask;
+            
+            if (issueWithJournals != null)
+            {
+                _journals = issueWithJournals.Journals;
+            }
+            
+            // Cargar miembros del proyecto si hay proyecto
+            if (Issue.Project != null)
+            {
+                _projectMembers = await RedmineService.GetProjectMembersAsync(apiKey, Issue.Project.Id);
+            }
+            
+            _selectedPriorityId = Issue.Priority?.Id ?? 0;
+            _selectedAssigneeId = Issue.AssignedTo?.Id ?? 0;
+        }
+        catch (Exception ex)
+        {
+            Notification.ShowError($"Error al cargar detalles: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task Close()
+    {
+        _newComment = string.Empty;
+        _isEditingPriority = false;
+        _isEditingAssignee = false;
+        await OnClose.InvokeAsync();
+    }
+    
+    private void StartEditPriority()
+    {
+        _selectedPriorityId = Issue.Priority?.Id ?? 0;
+        _isEditingPriority = true;
+    }
+    
+    private void CancelEditPriority()
+    {
+        _isEditingPriority = false;
+    }
+    
+    private async Task SavePriority()
+    {
+        if (_selectedPriorityId == Issue.Priority?.Id) 
+        {
+            _isEditingPriority = false;
+            return;
+        }
+        
+        _isSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            
+            var result = await RedmineService.UpdateIssuePriorityAsync(apiKey, Issue.Id, _selectedPriorityId);
+            
+            if (result.Success)
+            {
+                var newPriority = _priorities.FirstOrDefault(p => p.Id == _selectedPriorityId);
+                if (newPriority != null)
+                {
+                    Issue.Priority = newPriority;
+                }
+                Notification.ShowSuccess("Prioridad actualizada");
+                await OnIssueUpdated.InvokeAsync(Issue);
+            }
+            else
+            {
+                Notification.ShowError(result.ErrorMessage ?? "Error al actualizar prioridad");
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+            _isEditingPriority = false;
+            StateHasChanged();
+        }
+    }
+    
+    private void StartEditAssignee()
+    {
+        _selectedAssigneeId = Issue.AssignedTo?.Id ?? 0;
+        _isEditingAssignee = true;
+    }
+    
+    private void CancelEditAssignee()
+    {
+        _isEditingAssignee = false;
+    }
+    
+    private async Task SaveAssignee()
+    {
+        if (_selectedAssigneeId == (Issue.AssignedTo?.Id ?? 0)) 
+        {
+            _isEditingAssignee = false;
+            return;
+        }
+        
+        _isSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            
+            var result = await RedmineService.UpdateIssueAssigneeAsync(apiKey, Issue.Id, _selectedAssigneeId == 0 ? null : _selectedAssigneeId);
+            
+            if (result.Success)
+            {
+                if (_selectedAssigneeId == 0)
+                {
+                    Issue.AssignedTo = null;
+                }
+                else
+                {
+                    Issue.AssignedTo = _projectMembers.FirstOrDefault(u => u.Id == _selectedAssigneeId);
+                }
+                Notification.ShowSuccess("Asignación actualizada");
+                await OnIssueUpdated.InvokeAsync(Issue);
+            }
+            else
+            {
+                Notification.ShowError(result.ErrorMessage ?? "Error al actualizar asignación");
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+            _isEditingAssignee = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task AddComment()
+    {
+        if (string.IsNullOrWhiteSpace(_newComment)) return;
+        
+        _isSaving = true;
+        StateHasChanged();
+        
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            
+            var result = await RedmineService.AddCommentAsync(apiKey, Issue.Id, _newComment);
+            
+            if (result.Success)
+            {
+                // Recargar journals para ver el nuevo comentario
+                var issueWithJournals = await RedmineService.GetIssueWithJournalsAsync(apiKey, Issue.Id);
+                if (issueWithJournals != null)
+                {
+                    _journals = issueWithJournals.Journals;
+                }
+                
+                _newComment = string.Empty;
+                Notification.ShowSuccess("Comentario agregado");
+            }
+            else
+            {
+                Notification.ShowError(result.ErrorMessage ?? "Error al agregar comentario");
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+    
+    private string FormatDescription(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        
+        // Escape HTML y convertir saltos de línea
+        var escaped = System.Web.HttpUtility.HtmlEncode(text);
+        return escaped.Replace("\n", "<br />");
+    }
+}

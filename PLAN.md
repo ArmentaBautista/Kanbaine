@@ -139,13 +139,13 @@ KanbanRedmine/
 - [ ] **OPT-4**: Animaciones suaves en transiciones
 
 ### Filtros y Búsqueda
-- [ ] **OPT-5**: Filtrar tareas por proyecto
-- [ ] **OPT-6**: Filtrar tareas por prioridad
-- [ ] **OPT-7**: Búsqueda de tareas por texto
-- [ ] **OPT-8**: Filtrar por rango de fechas
+- [x] **OPT-5**: Filtrar tareas por proyecto
+- [x] **OPT-6**: Filtrar tareas por prioridad
+- [x] **OPT-7**: Búsqueda de tareas por texto
+- [x] **OPT-8**: Filtrar por rango de fechas
 
 ### Visualización Avanzada
-- [ ] **OPT-9**: Vista detallada de tarea en modal
+- [x] **OPT-9**: Vista detallada de tarea en modal
 - [ ] **OPT-10**: Mostrar imagen de avatar del usuario asignado
 - [ ] **OPT-11**: Badges de colores según prioridad
 - [ ] **OPT-12**: Contador de tareas por columna
@@ -153,10 +153,10 @@ KanbanRedmine/
 
 ### Funcionalidades Adicionales
 - [ ] **OPT-14**: Actualización automática del tablero (polling o SignalR)
-- [ ] **OPT-15**: Añadir comentarios a tareas desde la app
-- [ ] **OPT-16**: Ver y cambiar la prioridad de tareas
-- [ ] **OPT-17**: Asignar/reasignar tareas a otros usuarios
-- [ ] **OPT-18**: Exportar vista del tablero a imagen/PDF
+- [x] **OPT-15**: Añadir comentarios a tareas desde la app
+- [x] **OPT-16**: Ver y cambiar la prioridad de tareas
+- [x] **OPT-17**: Asignar/reasignar tareas a otros usuarios
+- [x] **OPT-18**: Exportar vista del tablero a imagen/PDF
 - [ ] **OPT-19**: Guardar configuración de filtros por usuario
 
 ### Métricas y Reportes

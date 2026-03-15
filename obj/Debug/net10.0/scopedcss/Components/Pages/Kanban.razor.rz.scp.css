@@ -72,3 +72,52 @@
 .kanban-error .btn[b-7jpp2tln42] {
     padding: 0.5rem 1.5rem;
 }
+
+/* Export buttons */
+.export-buttons[b-7jpp2tln42] {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-export[b-7jpp2tln42] {
+    padding: 0.4rem 0.8rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-export:hover[b-7jpp2tln42] {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.btn-export.image[b-7jpp2tln42] {
+    background-color: #17a2b8;
+}
+
+.btn-export.image:hover[b-7jpp2tln42] {
+    background-color: #138496;
+}
+
+.btn-export.pdf[b-7jpp2tln42] {
+    background-color: #dc3545;
+}
+
+.btn-export.pdf:hover[b-7jpp2tln42] {
+    background-color: #c82333;
+}
+
+.btn-export.print[b-7jpp2tln42] {
+    background-color: #28a745;
+}
+
+.btn-export.print:hover[b-7jpp2tln42] {
+    background-color: #218838;
+}

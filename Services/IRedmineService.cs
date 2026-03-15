@@ -77,6 +77,48 @@ public interface IRedmineService
     /// <param name="limit">Número máximo de cambios a obtener</param>
     /// <returns>Lista de cambios de estado</returns>
     Task<List<StatusChange>> GetRecentStatusChangesAsync(string apiKey, int limit = 20);
+    
+    /// <summary>
+    /// Obtiene las prioridades disponibles
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <returns>Lista de prioridades</returns>
+    Task<List<RedmineReference>> GetPrioritiesAsync(string apiKey);
+    
+    /// <summary>
+    /// Obtiene los miembros de un proyecto
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="projectId">ID del proyecto</param>
+    /// <returns>Lista de miembros del proyecto</returns>
+    Task<List<RedmineReference>> GetProjectMembersAsync(string apiKey, int projectId);
+    
+    /// <summary>
+    /// Actualiza la prioridad de un issue
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="issueId">ID del issue</param>
+    /// <param name="priorityId">ID de la nueva prioridad</param>
+    /// <returns>Resultado de la operación</returns>
+    Task<OperationResult> UpdateIssuePriorityAsync(string apiKey, int issueId, int priorityId);
+    
+    /// <summary>
+    /// Actualiza el usuario asignado a un issue
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="issueId">ID del issue</param>
+    /// <param name="assigneeId">ID del usuario asignado (null para quitar asignación)</param>
+    /// <returns>Resultado de la operación</returns>
+    Task<OperationResult> UpdateIssueAssigneeAsync(string apiKey, int issueId, int? assigneeId);
+    
+    /// <summary>
+    /// Agrega un comentario a un issue
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="issueId">ID del issue</param>
+    /// <param name="comment">Texto del comentario</param>
+    /// <returns>Resultado de la operación</returns>
+    Task<OperationResult> AddCommentAsync(string apiKey, int issueId, string comment);
 }
 
 /// <summary>

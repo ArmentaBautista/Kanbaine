@@ -153,3 +153,36 @@ public class IssueUpdate
     [JsonPropertyName("notes")]
     public string? Notes { get; set; }
 }
+
+/// <summary>
+/// Respuesta de la API para prioridades
+/// </summary>
+public class PrioritiesResponse
+{
+    [JsonPropertyName("issue_priorities")]
+    public List<RedmineReference> IssuePriorities { get; set; } = new();
+}
+
+/// <summary>
+/// Respuesta de la API para miembros del proyecto
+/// </summary>
+public class MembershipsResponse
+{
+    [JsonPropertyName("memberships")]
+    public List<Membership> Memberships { get; set; } = new();
+}
+
+/// <summary>
+/// Membresía de un proyecto
+/// </summary>
+public class Membership
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    
+    [JsonPropertyName("user")]
+    public RedmineReference? User { get; set; }
+    
+    [JsonPropertyName("roles")]
+    public List<RedmineReference> Roles { get; set; } = new();
+}

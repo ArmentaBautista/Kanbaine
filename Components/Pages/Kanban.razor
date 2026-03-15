@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject AppState AppState
+@inject IJSRuntime JS
 
 <PageTitle>Tablero Kanban - Redmine</PageTitle>
 
@@ -16,6 +17,17 @@ else if (_isAuthenticated)
         <div class="kanban-toolbar">
             <h1>Tablero Kanban</h1>
             <div class="toolbar-actions">
+                <div class="export-buttons">
+                    <button class="btn-export image" @onclick="ExportAsImage" title="Exportar como imagen">
+                        📷 Imagen
+                    </button>
+                    <button class="btn-export pdf" @onclick="ExportAsPdf" title="Exportar como PDF">
+                        📄 PDF
+                    </button>
+                    <button class="btn-export print" @onclick="PrintBoard" title="Imprimir">
+                        🖨️ Imprimir
+                    </button>
+                </div>
                 <span class="user-welcome">@_userName</span>
                 <button class="btn-refresh" @onclick="RefreshBoard" disabled="@_isRefreshing">
                     @if (_isRefreshing)
@@ -30,7 +42,9 @@ else if (_isAuthenticated)
             </div>
         </div>
         
-        <KanbanBoard @ref="_kanbanBoard" />
+        <div id="kanban-export-area">
+            <KanbanBoard @ref="_kanbanBoard" />
+        </div>
     </div>
 }
 
@@ -85,5 +99,22 @@ else if (_isAuthenticated)
             _isRefreshing = false;
             StateHasChanged();
         }
+    }
+    
+    private async Task ExportAsImage()
+    {
+        var filename = $"kanban-{DateTime.Now:yyyyMMdd-HHmmss}.png";
+        await JS.InvokeVoidAsync("exportKanbanAsImage", "#kanban-export-area .kanban-board", filename);
+    }
+    
+    private async Task ExportAsPdf()
+    {
+        var filename = $"kanban-{DateTime.Now:yyyyMMdd-HHmmss}.pdf";
+        await JS.InvokeVoidAsync("exportKanbanAsPdf", "#kanban-export-area .kanban-board", filename);
+    }
+    
+    private async Task PrintBoard()
+    {
+        await JS.InvokeVoidAsync("printKanban", "#kanban-export-area .kanban-board");
     }
 }

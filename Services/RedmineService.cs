@@ -392,6 +392,134 @@ public class RedmineService : IRedmineService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<List<RedmineReference>> GetPrioritiesAsync(string apiKey)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            
+            var response = await client.GetAsync("enumerations/issue_priorities.json");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener prioridades. Status: {Status}", response.StatusCode);
+                return new List<RedmineReference>();
+            }
+            
+            var content = await response.Content.ReadAsStringAsync();
+            var prioritiesResponse = JsonSerializer.Deserialize<PrioritiesResponse>(content, JsonOptions);
+            
+            return prioritiesResponse?.IssuePriorities ?? new List<RedmineReference>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener prioridades");
+            return new List<RedmineReference>();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<List<RedmineReference>> GetProjectMembersAsync(string apiKey, int projectId)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            
+            var response = await client.GetAsync($"projects/{projectId}/memberships.json?limit=100");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener miembros del proyecto {ProjectId}. Status: {Status}", 
+                    projectId, response.StatusCode);
+                return new List<RedmineReference>();
+            }
+            
+            var content = await response.Content.ReadAsStringAsync();
+            var membershipsResponse = JsonSerializer.Deserialize<MembershipsResponse>(content, JsonOptions);
+            
+            return membershipsResponse?.Memberships?
+                .Where(m => m.User != null)
+                .Select(m => m.User!)
+                .ToList() ?? new List<RedmineReference>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener miembros del proyecto {ProjectId}", projectId);
+            return new List<RedmineReference>();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<OperationResult> UpdateIssuePriorityAsync(string apiKey, int issueId, int priorityId)
+    {
+        return await UpdateIssueFieldAsync(apiKey, issueId, new IssueUpdate { PriorityId = priorityId });
+    }
+
+    /// <inheritdoc />
+    public async Task<OperationResult> UpdateIssueAssigneeAsync(string apiKey, int issueId, int? assigneeId)
+    {
+        return await UpdateIssueFieldAsync(apiKey, issueId, new IssueUpdate { AssignedToId = assigneeId ?? 0 });
+    }
+
+    /// <inheritdoc />
+    public async Task<OperationResult> AddCommentAsync(string apiKey, int issueId, string comment)
+    {
+        return await UpdateIssueFieldAsync(apiKey, issueId, new IssueUpdate { Notes = comment });
+    }
+
+    /// <summary>
+    /// Método genérico para actualizar campos de un issue
+    /// </summary>
+    private async Task<OperationResult> UpdateIssueFieldAsync(string apiKey, int issueId, IssueUpdate update)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            
+            var payload = new IssueUpdatePayload { Issue = update };
+            var jsonContent = JsonSerializer.Serialize(payload, JsonOptions);
+            
+            _logger.LogDebug("Actualizando issue {IssueId} con payload: {Json}", issueId, jsonContent);
+            
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await client.PutAsync($"issues/{issueId}.json", content);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error al actualizar issue {IssueId}. Status: {Status}. Response: {Response}", 
+                    issueId, response.StatusCode, errorBody);
+                
+                return response.StatusCode switch
+                {
+                    System.Net.HttpStatusCode.Unauthorized => 
+                        OperationResult.Fail("Sesión expirada", ErrorType.Unauthorized),
+                    System.Net.HttpStatusCode.NotFound => 
+                        OperationResult.Fail("Tarea no encontrada", ErrorType.NotFound),
+                    System.Net.HttpStatusCode.UnprocessableEntity => 
+                        OperationResult.Fail(ParseRedmineError(errorBody) ?? "No se puede realizar esta operación", ErrorType.ValidationError),
+                    System.Net.HttpStatusCode.Forbidden =>
+                        OperationResult.Fail("No tienes permisos para esta acción", ErrorType.Unauthorized),
+                    _ => 
+                        OperationResult.Fail($"Error del servidor", ErrorType.ServerError)
+                };
+            }
+            
+            return OperationResult.Ok();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error de red al actualizar issue {IssueId}", issueId);
+            return OperationResult.Fail("Error de conexión", ErrorType.NetworkError);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al actualizar issue {IssueId}", issueId);
+            return OperationResult.Fail("Error inesperado", ErrorType.Unknown);
+        }
+    }
+
     /// <summary>
     /// Crea un HttpClient base
     /// </summary>

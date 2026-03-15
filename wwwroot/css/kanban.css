@@ -82,12 +82,14 @@
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
     box-shadow: var(--card-shadow);
-    cursor: grab;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s;
+    border: 2px solid transparent;
 }
 
 .kanban-card:hover {
     box-shadow: var(--card-shadow-hover);
+    border-color: #3b82f6;
 }
 
 .kanban-card:active {

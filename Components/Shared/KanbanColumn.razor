@@ -22,7 +22,7 @@
     <div class="kanban-column-body">
         @foreach (var issue in Column.Issues)
         {
-            <KanbanCard Issue="issue" OnDragStarted="HandleCardDragStarted" />
+            <KanbanCard Issue="issue" OnDragStarted="HandleCardDragStarted" OnClick="HandleCardClicked" />
         }
         
         @if (Column.Issues.Count == 0)
@@ -40,6 +40,9 @@
 
     [Parameter]
     public EventCallback<IssueMoveEventArgs> OnIssueMoved { get; set; }
+    
+    [Parameter]
+    public EventCallback<RedmineIssue> OnIssueClicked { get; set; }
 
     private bool _isDragOver = false;
     private static int? _draggingIssueId;
@@ -47,6 +50,11 @@
     private void HandleCardDragStarted(int issueId)
     {
         _draggingIssueId = issueId;
+    }
+    
+    private async Task HandleCardClicked(RedmineIssue issue)
+    {
+        await OnIssueClicked.InvokeAsync(issue);
     }
 
     private void HandleDragOver(DragEventArgs e)

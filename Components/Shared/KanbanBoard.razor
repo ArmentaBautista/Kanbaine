@@ -2,6 +2,50 @@
 @inject AppState AppState
 @inject NotificationService Notification
 
+<!-- Barra de filtros -->
+<div class="kanban-filters">
+    <div class="filter-group">
+        <input type="text" class="filter-search" placeholder="Buscar tareas..." 
+               @bind="_searchText" @bind:event="oninput" @onkeyup="ApplyFilters" />
+    </div>
+    
+    <div class="filter-group">
+        <select class="filter-select" @bind="_selectedProjectId" @bind:after="ApplyFilters">
+            <option value="0">Todos los proyectos</option>
+            @foreach (var project in _projects)
+            {
+                <option value="@project.Id">@project.Name</option>
+            }
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <select class="filter-select" @bind="_selectedPriorityId" @bind:after="ApplyFilters">
+            <option value="0">Todas las prioridades</option>
+            @foreach (var priority in _priorities)
+            {
+                <option value="@priority.Id">@priority.Name</option>
+            }
+        </select>
+    </div>
+    
+    <div class="filter-group filter-dates">
+        <label>Vence desde:</label>
+        <input type="date" class="filter-date" @bind="_dueDateFrom" @bind:after="ApplyFilters" />
+        <label>hasta:</label>
+        <input type="date" class="filter-date" @bind="_dueDateTo" @bind:after="ApplyFilters" />
+    </div>
+    
+    @if (HasActiveFilters)
+    {
+        <button class="btn-clear-filters" @onclick="ClearFilters">Limpiar filtros</button>
+    }
+    
+    <div class="filter-stats">
+        <span>@_filteredIssueCount de @_totalIssueCount tareas</span>
+    </div>
+</div>
+
 <div class="kanban-board">
     @if (_isLoading)
     {
@@ -18,17 +62,49 @@
     }
     else
     {
-        @foreach (var column in _columns)
+        @foreach (var column in _filteredColumns)
         {
-            <KanbanColumn Column="column" OnIssueMoved="HandleIssueMoved" />
+            <KanbanColumn Column="column" OnIssueMoved="HandleIssueMoved" OnIssueClicked="HandleIssueClicked" />
         }
     }
 </div>
 
+<!-- Modal de detalles -->
+<IssueDetailModal IsVisible="_showModal" 
+                  Issue="_selectedIssue" 
+                  OnClose="CloseModal"
+                  OnIssueUpdated="HandleIssueUpdated" />
+
 @code {
     private List<KanbanColumnData> _columns = new();
+    private List<KanbanColumnData> _filteredColumns = new();
+    private List<RedmineIssue> _allIssues = new();
+    private List<RedmineProject> _projects = new();
+    private List<RedmineReference> _priorities = new();
     private bool _isLoading = true;
     private string? _errorMessage;
+    
+    // Filtros
+    private string _searchText = string.Empty;
+    private int _selectedProjectId = 0;
+    private int _selectedPriorityId = 0;
+    private DateTime? _dueDateFrom;
+    private DateTime? _dueDateTo;
+    
+    // Modal
+    private bool _showModal = false;
+    private RedmineIssue _selectedIssue = new();
+    
+    // Stats
+    private int _totalIssueCount = 0;
+    private int _filteredIssueCount = 0;
+    
+    private bool HasActiveFilters => 
+        !string.IsNullOrWhiteSpace(_searchText) || 
+        _selectedProjectId > 0 || 
+        _selectedPriorityId > 0 ||
+        _dueDateFrom.HasValue ||
+        _dueDateTo.HasValue;
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,23 +126,29 @@
                 return;
             }
 
-            // Obtener estados y tareas en paralelo
+            // Obtener datos en paralelo
             var statusesTask = RedmineService.GetStatusesAsync(apiKey);
             var issuesTask = RedmineService.GetMyIssuesAsync(apiKey);
+            var projectsTask = RedmineService.GetProjectsAsync(apiKey);
+            var prioritiesTask = RedmineService.GetPrioritiesAsync(apiKey);
 
-            await Task.WhenAll(statusesTask, issuesTask);
+            await Task.WhenAll(statusesTask, issuesTask, projectsTask, prioritiesTask);
 
             var statuses = await statusesTask;
-            var issues = await issuesTask;
+            _allIssues = await issuesTask;
+            _projects = await projectsTask;
+            _priorities = (await prioritiesTask).ToList();
+            
+            _totalIssueCount = _allIssues.Count;
 
             // Crear columnas basadas en los estados
             _columns = statuses
-                .Where(s => !s.IsClosed) // Solo mostrar estados no cerrados
+                .Where(s => !s.IsClosed)
                 .OrderBy(s => s.Id)
                 .Select(status => new KanbanColumnData
                 {
                     Status = status,
-                    Issues = issues
+                    Issues = _allIssues
                         .Where(i => i.Status?.Id == status.Id)
                         .OrderByDescending(i => i.Priority?.Id ?? 0)
                         .ThenBy(i => i.DueDate)
@@ -74,11 +156,12 @@
                 })
                 .ToList();
 
-            // Si no hay columnas, mostrar mensaje
             if (_columns.Count == 0)
             {
                 _errorMessage = "No se encontraron estados configurados en Redmine";
             }
+            
+            ApplyFilters();
         }
         catch (Exception ex)
         {
@@ -90,6 +173,61 @@
             StateHasChanged();
         }
     }
+    
+    private void ApplyFilters()
+    {
+        _filteredColumns = _columns.Select(col => new KanbanColumnData
+        {
+            Status = col.Status,
+            WipLimit = col.WipLimit,
+            Issues = col.Issues.Where(issue => MatchesFilters(issue)).ToList()
+        }).ToList();
+        
+        _filteredIssueCount = _filteredColumns.Sum(c => c.Issues.Count);
+        StateHasChanged();
+    }
+    
+    private bool MatchesFilters(RedmineIssue issue)
+    {
+        // Filtro de búsqueda por texto
+        if (!string.IsNullOrWhiteSpace(_searchText))
+        {
+            var searchLower = _searchText.ToLower();
+            var matchesText = 
+                issue.Subject.ToLower().Contains(searchLower) ||
+                issue.Id.ToString().Contains(searchLower) ||
+                (issue.Description?.ToLower().Contains(searchLower) ?? false);
+            
+            if (!matchesText) return false;
+        }
+        
+        // Filtro por proyecto
+        if (_selectedProjectId > 0 && issue.Project?.Id != _selectedProjectId)
+            return false;
+        
+        // Filtro por prioridad
+        if (_selectedPriorityId > 0 && issue.Priority?.Id != _selectedPriorityId)
+            return false;
+        
+        // Filtro por fecha de vencimiento
+        if (_dueDateFrom.HasValue && (!issue.DueDate.HasValue || issue.DueDate < _dueDateFrom))
+            return false;
+            
+        if (_dueDateTo.HasValue && (!issue.DueDate.HasValue || issue.DueDate > _dueDateTo))
+            return false;
+        
+        return true;
+    }
+    
+    private void ClearFilters()
+    {
+        _searchText = string.Empty;
+        _selectedProjectId = 0;
+        _selectedPriorityId = 0;
+        _dueDateFrom = null;
+        _dueDateTo = null;
+        ApplyFilters();
+    }
 
     private async Task HandleIssueMoved(IssueMoveEventArgs args)
     {
@@ -100,7 +238,7 @@
             return;
         }
 
-        // Encontrar el issue y las columnas
+        // Encontrar el issue y las columnas (usar _columns original)
         var sourceColumn = _columns.FirstOrDefault(c => c.Issues.Any(i => i.Id == args.IssueId));
         var targetColumn = _columns.FirstOrDefault(c => c.Status.Id == args.NewStatusId);
 
@@ -109,38 +247,30 @@
         var issue = sourceColumn.Issues.FirstOrDefault(i => i.Id == args.IssueId);
         if (issue == null) return;
         
-        // No hacer nada si es la misma columna
         if (sourceColumn.Status.Id == targetColumn.Status.Id) return;
 
-        // Actualización optimista: mover visualmente primero
+        // Actualización optimista
         sourceColumn.Issues.Remove(issue);
-        
-        // Guardar estado anterior para rollback
         var previousStatus = issue.Status;
         
-        // Actualizar el estado del issue localmente
-        if (issue.Status != null)
-        {
-            issue.Status = new RedmineReference 
-            { 
-                Id = targetColumn.Status.Id, 
-                Name = targetColumn.Status.Name 
-            };
-        }
+        issue.Status = new RedmineReference 
+        { 
+            Id = targetColumn.Status.Id, 
+            Name = targetColumn.Status.Name 
+        };
         
         targetColumn.Issues.Insert(0, issue);
-        StateHasChanged();
+        ApplyFilters(); // Reaplicar filtros para actualizar vista
 
-        // Intentar actualizar en Redmine
         var result = await RedmineService.UpdateIssueStatusWithResultAsync(apiKey, args.IssueId, args.NewStatusId);
 
         if (!result.Success)
         {
-            // Rollback si falla
+            // Rollback
             targetColumn.Issues.Remove(issue);
             issue.Status = previousStatus;
             sourceColumn.Issues.Insert(0, issue);
-            StateHasChanged();
+            ApplyFilters();
             
             Notification.ShowError(result.ErrorMessage ?? "Error al actualizar el estado.");
         }
@@ -149,10 +279,35 @@
             Notification.ShowSuccess($"Tarea #{args.IssueId} movida a '{targetColumn.Status.Name}'");
         }
     }
+    
+    private void HandleIssueClicked(RedmineIssue issue)
+    {
+        _selectedIssue = issue;
+        _showModal = true;
+    }
+    
+    private void CloseModal()
+    {
+        _showModal = false;
+    }
+    
+    private void HandleIssueUpdated(RedmineIssue updatedIssue)
+    {
+        // Actualizar el issue en las columnas
+        foreach (var column in _columns)
+        {
+            var issue = column.Issues.FirstOrDefault(i => i.Id == updatedIssue.Id);
+            if (issue != null)
+            {
+                // Actualizar propiedades del issue
+                issue.Priority = updatedIssue.Priority;
+                issue.AssignedTo = updatedIssue.AssignedTo;
+                break;
+            }
+        }
+        ApplyFilters();
+    }
 
-    /// <summary>
-    /// Recargar datos del tablero
-    /// </summary>
     public async Task RefreshAsync()
     {
         await LoadData();

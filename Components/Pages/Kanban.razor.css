@@ -72,3 +72,52 @@
 .kanban-error .btn {
     padding: 0.5rem 1.5rem;
 }
+
+/* Export buttons */
+.export-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-export {
+    padding: 0.4rem 0.8rem;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-export:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+.btn-export.image {
+    background-color: #17a2b8;
+}
+
+.btn-export.image:hover {
+    background-color: #138496;
+}
+
+.btn-export.pdf {
+    background-color: #dc3545;
+}
+
+.btn-export.pdf:hover {
+    background-color: #c82333;
+}
+
+.btn-export.print {
+    background-color: #28a745;
+}
+
+.btn-export.print:hover {
+    background-color: #218838;
+}

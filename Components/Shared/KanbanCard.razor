@@ -1,7 +1,8 @@
 <div class="kanban-card @Issue.PriorityCssClass"
      draggable="true"
      @ondragstart="HandleDragStart"
-     @ondragend="HandleDragEnd">
+     @ondragend="HandleDragEnd"
+     @onclick="HandleClick">
     
     <div class="priority-indicator"></div>
     
@@ -62,6 +63,9 @@
 
     [Parameter]
     public EventCallback<int> OnDragStarted { get; set; }
+    
+    [Parameter]
+    public EventCallback<RedmineIssue> OnClick { get; set; }
 
     private bool _isDragging = false;
 
@@ -74,6 +78,14 @@
     private void HandleDragEnd(DragEventArgs e)
     {
         _isDragging = false;
+    }
+    
+    private async Task HandleClick()
+    {
+        if (!_isDragging)
+        {
+            await OnClick.InvokeAsync(Issue);
+        }
     }
 
     private static string TruncateText(string text, int maxLength)
