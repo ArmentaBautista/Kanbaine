@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "7aifPfQNrO8=",
+  "dgSpecHash": "f5QxXLEbWkA=",
   "success": true,
   "projectFilePath": "D:\\github\\KanbanRedmine\\KanbanRedmine.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\juanc\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.4\\microsoft.aspnetcore.app.internal.assets.10.0.4.nupkg.sha512"
+    "C:\\Users\\juanc\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.5\\microsoft.aspnetcore.app.internal.assets.10.0.5.nupkg.sha512"
   ],
   "logs": []
 }
