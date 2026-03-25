@@ -9,10 +9,10 @@ public class OperationResult
     public string? ErrorMessage { get; set; }
     public ErrorType? ErrorType { get; set; }
 
-    public static OperationResult Ok() => new() { Success = true };
+    public static OperationResult Ok() => new OperationResult { Success = true };
     
     public static OperationResult Fail(string message, ErrorType type = Models.ErrorType.Unknown) => 
-        new() { Success = false, ErrorMessage = message, ErrorType = type };
+        new OperationResult { Success = false, ErrorMessage = message, ErrorType = type };
 }
 
 /// <summary>
@@ -26,10 +26,10 @@ public class OperationResult<T>
     public string? ErrorMessage { get; set; }
     public ErrorType? ErrorType { get; set; }
 
-    public static OperationResult<T> Ok(T data) => new() { Success = true, Data = data };
+    public static OperationResult<T> Ok(T data) => new OperationResult<T> { Success = true, Data = data };
     
     public static OperationResult<T> Fail(string message, ErrorType type = Models.ErrorType.Unknown) => 
-        new() { Success = false, ErrorMessage = message, ErrorType = type };
+        new OperationResult<T> { Success = false, ErrorMessage = message, ErrorType = type };
 }
 
 /// <summary>

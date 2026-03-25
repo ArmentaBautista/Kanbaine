@@ -134,6 +134,14 @@ public interface IRedmineService
     /// <param name="assigneeId">ID del usuario asignado (null o 0 para 'me')</param>
     /// <returns>Lista de issues</returns>
     Task<List<RedmineIssue>> GetIssuesByAssigneeAsync(string apiKey, int? assigneeId);
+    
+    /// <summary>
+    /// Crea un nuevo issue en Redmine
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="model">Modelo con los datos del nuevo issue</param>
+    /// <returns>Resultado de la operación</returns>
+    Task<OperationResult> CreateIssueAsync(string apiKey, NewIssueModel model);
 }
 
 /// <summary>

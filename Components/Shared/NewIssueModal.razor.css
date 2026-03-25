@@ -1,0 +1,63 @@
+/* Estilos para el modal de nueva tarea */
+
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+}
+
+.modal-dialog.new-issue-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1010;
+    min-width: 350px;
+    max-width: 95vw;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    animation: modal-fade-in 0.2s;
+}
+
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: translate(-50%, -60%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.modal-content {
+    padding: 1.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.modal-header .close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}

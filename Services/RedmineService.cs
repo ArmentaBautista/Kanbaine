@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using KanbanRedmine.Models;
 using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 
 namespace KanbanRedmine.Services;
 
@@ -593,7 +594,7 @@ public class RedmineService : IRedmineService
         try
         {
             var client = CreateClientWithApiKey(apiKey);
-            string assignedParam = (assigneeId == null || assigneeId == 0) ? "me" : assigneeId.ToString();
+            string assignedParam = (assigneeId == null || assigneeId == 0) ? "me" : assigneeId?.ToString() ?? "me";
             var response = await client.GetAsync($"issues.json?assigned_to_id={assignedParam}&status_id=open&limit=100");
             if (!response.IsSuccessStatusCode)
             {
@@ -610,4 +611,45 @@ public class RedmineService : IRedmineService
             return new List<RedmineIssue>();
         }
     }
+
+    public async Task<OperationResult> CreateIssueAsync(string apiKey, NewIssueModel model)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var content = JsonSerializer.Serialize(model, JsonOptions);
+            var response = await client.PostAsync("issues.json", new StringContent(content, Encoding.UTF8, "application/json"));
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error al crear tarea. Status: {Status}, Response: {Response}", response.StatusCode, errorContent);
+                return OperationResult.Fail("Error al crear tarea");
+            }
+
+            return OperationResult.Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al crear tarea");
+            return OperationResult.Fail("Error de conexión. Verifique su red e intente nuevamente.", ErrorType.NetworkError);
+        }
+    }
+}
+
+public class NewIssueModel
+{
+    [Required]
+    public int? ProjectId { get; set; }
+    [Required]
+    public int? TrackerId { get; set; }
+    [Required]
+    public int? StatusId { get; set; }
+    [Required]
+    [MaxLength(255)]
+    public string Subject { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int? PriorityId { get; set; }
+    public int? AssignedToId { get; set; }
+    public DateTime? DueDate { get; set; }
 }

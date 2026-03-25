@@ -94,6 +94,10 @@ build_metadata.AdditionalFiles.CssScope = b-ik3f4hjqlu
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcS2FuYmFuQm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-r4299p7trl
 
+[D:/github/KanbanRedmine/Components/Shared/NewIssueModal.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcTmV3SXNzdWVNb2RhbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-dy4i66adaw
+
 [D:/github/KanbanRedmine/Components/Shared/ToastContainer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTaGFyZWRcVG9hc3RDb250YWluZXIucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-4wbqh5bdtv

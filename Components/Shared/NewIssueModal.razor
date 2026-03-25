@@ -1,0 +1,137 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+
+@inject IRedmineService RedmineService
+@inject AppState AppState
+@inject NotificationService Notification
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="Close"></div>
+    <div class="modal-dialog new-issue-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva tarea</h3>
+                <button class="close" @onclick="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="_model" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-group">
+                        <label>Proyecto</label>
+                        <select class="form-control" @bind="_model.ProjectId" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var project in Projects)
+                            {
+                                <option value="@project.Id">@project.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select class="form-control" @bind="_model.TrackerId" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var tracker in Trackers)
+                            {
+                                <option value="@tracker.Id">@tracker.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select class="form-control" @bind="_model.StatusId" required>
+                            <option value="">Seleccione...</option>
+                            @foreach (var status in Statuses)
+                            {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input class="form-control" @bind="_model.Subject" required maxlength="255" />
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea class="form-control" @bind="_model.Description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridad</label>
+                        <select class="form-control" @bind="_model.PriorityId">
+                            <option value="">Seleccione...</option>
+                            @foreach (var priority in Priorities)
+                            {
+                                <option value="@priority.Id">@priority.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Asignado a</label>
+                        <select class="form-control" @bind="_model.AssignedToId">
+                            <option value="">Sin asignar</option>
+                            @foreach (var user in Users)
+                            {
+                                <option value="@user.Id">@user.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de vencimiento</label>
+                        <input type="date" class="form-control" @bind="_model.DueDate" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" disabled="@_isSaving">Crear</button>
+                        <button type="button" class="btn btn-secondary" @onclick="Close">Cancelar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnIssueCreated { get; set; }
+
+    [Parameter] public List<RedmineProject> Projects { get; set; } = new();
+    [Parameter] public List<RedmineReference> Priorities { get; set; } = new();
+    [Parameter] public List<RedmineReference> Users { get; set; } = new();
+    [Parameter] public List<RedmineReference> Trackers { get; set; } = new();
+    [Parameter] public List<RedmineStatus> Statuses { get; set; } = new();
+
+    private KanbanRedmine.Services.NewIssueModel _model = new();
+    private bool _isSaving = false;
+
+    private void Close()
+    {
+        if (!_isSaving)
+            OnClose.InvokeAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _isSaving = true;
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            var result = await RedmineService.CreateIssueAsync(apiKey, _model);
+            if (result.Success)
+            {
+                Notification.ShowSuccess("Tarea creada correctamente");
+                await OnIssueCreated.InvokeAsync();
+                Close();
+            }
+            else
+            {
+                Notification.ShowError(result.ErrorMessage ?? "Error al crear tarea");
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+}
