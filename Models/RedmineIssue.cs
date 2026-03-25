@@ -186,3 +186,40 @@ public class Membership
     [JsonPropertyName("roles")]
     public List<RedmineReference> Roles { get; set; } = new();
 }
+/// <summary>
+/// Respuesta de la API para usuarios
+/// </summary>
+public class UsersResponse
+{
+    [JsonPropertyName("users")]
+    public List<RedmineUserInfo> Users { get; set; } = new();
+    
+    [JsonPropertyName("total_count")]
+    public int TotalCount { get; set; }
+}
+
+/// <summary>
+/// Información de usuario de Redmine
+/// </summary>
+public class RedmineUserInfo
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+    
+    [JsonPropertyName("login")]
+    public string Login { get; set; } = string.Empty;
+    
+    [JsonPropertyName("firstname")]
+    public string FirstName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("lastname")]
+    public string LastName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("status")]
+    public int Status { get; set; }
+    
+    /// <summary>
+    /// Nombre completo del usuario
+    /// </summary>
+    public string FullName => $"{FirstName} {LastName}".Trim();
+}

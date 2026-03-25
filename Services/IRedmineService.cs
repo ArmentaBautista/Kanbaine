@@ -119,6 +119,21 @@ public interface IRedmineService
     /// <param name="comment">Texto del comentario</param>
     /// <returns>Resultado de la operación</returns>
     Task<OperationResult> AddCommentAsync(string apiKey, int issueId, string comment);
+    
+    /// <summary>
+    /// Obtiene todos los usuarios activos del sistema
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <returns>Lista de usuarios activos</returns>
+    Task<List<RedmineReference>> GetUsersAsync(string apiKey);
+    
+    /// <summary>
+    /// Obtiene los issues asignados a un usuario específico
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="assigneeId">ID del usuario asignado (null o 0 para 'me')</param>
+    /// <returns>Lista de issues</returns>
+    Task<List<RedmineIssue>> GetIssuesByAssigneeAsync(string apiKey, int? assigneeId);
 }
 
 /// <summary>

@@ -143,6 +143,7 @@ KanbanRedmine/
 - [x] **OPT-6**: Filtrar tareas por prioridad
 - [x] **OPT-7**: Búsqueda de tareas por texto
 - [x] **OPT-8**: Filtrar por rango de fechas
+- [x] **OPT-26**: Filtrar por usuario asignado medinate una lista desplegable 
 
 ### Visualización Avanzada
 - [x] **OPT-9**: Vista detallada de tarea en modal

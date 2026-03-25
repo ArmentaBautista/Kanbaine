@@ -68,8 +68,6 @@ D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\projectbundle\KanbanRedmine.
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\x39iq9etjq-{0}-4kywy7iv6g-4kywy7iv6g.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\zs15ss2jn4-{0}-69dk8h0phy-69dk8h0phy.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\mm3rk4lpss-{0}-abdmv1u4y3-abdmv1u4y3.gz
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\w740bzq1ty-{0}-mgww215af1-mgww215af1.gz
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\8i10a9wbjf-{0}-dy8h75y8gn-dy8h75y8gn.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\staticwebassets.build.json
 D:\github\KanbanRedmine\obj\Debug\net10.0\staticwebassets.build.json.cache
 D:\github\KanbanRedmine\obj\Debug\net10.0\staticwebassets.development.json
@@ -89,3 +87,5 @@ D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\7yiksfi0w8-{0}-mcrgz7ybc5-m
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\onox45bkw3-{0}-nj8czfvd8s-nj8czfvd8s.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\m2id8dtrio-{0}-yxoz8wutwu-yxoz8wutwu.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\v5irlraair-{0}-yxoz8wutwu-yxoz8wutwu.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\w740bzq1ty-{0}-b9228eflpl-b9228eflpl.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\8i10a9wbjf-{0}-2tj1sjhksk-2tj1sjhksk.gz

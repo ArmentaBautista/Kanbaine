@@ -29,6 +29,16 @@
         </select>
     </div>
     
+    <div class="filter-group">
+        <select class="filter-select" value="@_selectedAssignedUserId" @onchange="OnAssignedUserChanged">
+            <option value="0">Todos los usuarios</option>
+            @foreach (var user in _assignedUsers)
+            {
+                <option value="@user.Id">@user.Name</option>
+            }
+        </select>
+    </div>
+    
     <div class="filter-group filter-dates">
         <label>Vence desde:</label>
         <input type="date" class="filter-date" @bind="_dueDateFrom" @bind:after="ApplyFilters" />
@@ -81,6 +91,7 @@
     private List<RedmineIssue> _allIssues = new();
     private List<RedmineProject> _projects = new();
     private List<RedmineReference> _priorities = new();
+    private List<RedmineReference> _assignedUsers = new();
     private bool _isLoading = true;
     private string? _errorMessage;
     
@@ -88,6 +99,7 @@
     private string _searchText = string.Empty;
     private int _selectedProjectId = 0;
     private int _selectedPriorityId = 0;
+    private int _selectedAssignedUserId = 0;
     private DateTime? _dueDateFrom;
     private DateTime? _dueDateTo;
     
@@ -103,6 +115,7 @@
         !string.IsNullOrWhiteSpace(_searchText) || 
         _selectedProjectId > 0 || 
         _selectedPriorityId > 0 ||
+        _selectedAssignedUserId > 0 ||
         _dueDateFrom.HasValue ||
         _dueDateTo.HasValue;
 
@@ -131,13 +144,15 @@
             var issuesTask = RedmineService.GetMyIssuesAsync(apiKey);
             var projectsTask = RedmineService.GetProjectsAsync(apiKey);
             var prioritiesTask = RedmineService.GetPrioritiesAsync(apiKey);
+            var usersTask = RedmineService.GetUsersAsync(apiKey);
 
-            await Task.WhenAll(statusesTask, issuesTask, projectsTask, prioritiesTask);
+            await Task.WhenAll(statusesTask, issuesTask, projectsTask, prioritiesTask, usersTask);
 
             var statuses = await statusesTask;
             _allIssues = await issuesTask;
             _projects = await projectsTask;
             _priorities = (await prioritiesTask).ToList();
+            _assignedUsers = (await usersTask).ToList();
             
             _totalIssueCount = _allIssues.Count;
 
@@ -209,6 +224,10 @@
         if (_selectedPriorityId > 0 && issue.Priority?.Id != _selectedPriorityId)
             return false;
         
+        // Filtro por usuario asignado
+        if (_selectedAssignedUserId > 0 && issue.AssignedTo?.Id != _selectedAssignedUserId)
+            return false;
+        
         // Filtro por fecha de vencimiento
         if (_dueDateFrom.HasValue && (!issue.DueDate.HasValue || issue.DueDate < _dueDateFrom))
             return false;
@@ -224,6 +243,7 @@
         _searchText = string.Empty;
         _selectedProjectId = 0;
         _selectedPriorityId = 0;
+        _selectedAssignedUserId = 0;
         _dueDateFrom = null;
         _dueDateTo = null;
         ApplyFilters();
@@ -311,5 +331,52 @@
     public async Task RefreshAsync()
     {
         await LoadData();
+    }
+
+    private async Task OnAssignedUserChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var userId))
+        {
+            _selectedAssignedUserId = userId;
+            await LoadIssuesByAssignee();
+        }
+    }
+
+    private async Task LoadIssuesByAssignee()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+            _allIssues = await RedmineService.GetIssuesByAssigneeAsync(apiKey, _selectedAssignedUserId);
+            _totalIssueCount = _allIssues.Count;
+            // Recalcular columnas
+            var statuses = await RedmineService.GetStatusesAsync(apiKey);
+            _columns = statuses
+                .Where(s => !s.IsClosed)
+                .OrderBy(s => s.Id)
+                .Select(status => new KanbanColumnData
+                {
+                    Status = status,
+                    Issues = _allIssues
+                        .Where(i => i.Status?.Id == status.Id)
+                        .OrderByDescending(i => i.Priority?.Id ?? 0)
+                        .ThenBy(i => i.DueDate)
+                        .ToList()
+                })
+                .ToList();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error al cargar tareas: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
     }
 }

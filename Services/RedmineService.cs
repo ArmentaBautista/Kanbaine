@@ -520,6 +520,53 @@ public class RedmineService : IRedmineService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<List<RedmineReference>> GetUsersAsync(string apiKey)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var allUsers = new List<RedmineUserInfo>();
+            int offset = 0;
+            int limit = 100;
+            int totalCount;
+            
+            // Paginar para obtener todos los usuarios
+            do
+            {
+                var response = await client.GetAsync($"users.json?status=1&limit={limit}&offset={offset}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Error al obtener usuarios. Status: {Status}", response.StatusCode);
+                    break;
+                }
+                
+                var content = await response.Content.ReadAsStringAsync();
+                var usersResponse = JsonSerializer.Deserialize<UsersResponse>(content, JsonOptions);
+                
+                if (usersResponse?.Users == null || usersResponse.Users.Count == 0)
+                    break;
+                    
+                allUsers.AddRange(usersResponse.Users);
+                totalCount = usersResponse.TotalCount;
+                offset += limit;
+                
+            } while (offset < totalCount);
+            
+            // Convertir a RedmineReference ordenados por nombre
+            return allUsers
+                .Select(u => new RedmineReference { Id = u.Id, Name = u.FullName })
+                .OrderBy(u => u.Name)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener usuarios");
+            return new List<RedmineReference>();
+        }
+    }
+
     /// <summary>
     /// Crea un HttpClient base
     /// </summary>
@@ -539,5 +586,28 @@ public class RedmineService : IRedmineService
         var client = CreateClient();
         client.DefaultRequestHeaders.Add("X-Redmine-API-Key", apiKey);
         return client;
+    }
+
+    public async Task<List<RedmineIssue>> GetIssuesByAssigneeAsync(string apiKey, int? assigneeId)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            string assignedParam = (assigneeId == null || assigneeId == 0) ? "me" : assigneeId.ToString();
+            var response = await client.GetAsync($"issues.json?assigned_to_id={assignedParam}&status_id=open&limit=100");
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener issues por usuario. Status: {Status}", response.StatusCode);
+                return new List<RedmineIssue>();
+            }
+            var content = await response.Content.ReadAsStringAsync();
+            var issuesResponse = JsonSerializer.Deserialize<IssuesResponse>(content, JsonOptions);
+            return issuesResponse?.Issues ?? new List<RedmineIssue>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener issues por usuario");
+            return new List<RedmineIssue>();
+        }
     }
 }
