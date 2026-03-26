@@ -635,6 +635,34 @@ public class RedmineService : IRedmineService
             return OperationResult.Fail("Error de conexión. Verifique su red e intente nuevamente.", ErrorType.NetworkError);
         }
     }
+
+    /// <summary>
+    /// Fetches the list of trackers from Redmine.
+    /// </summary>
+    public async Task<List<RedmineReference>> GetTrackersAsync(string apiKey)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var response = await client.GetAsync("trackers.json");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error fetching trackers. Status: {Status}", response.StatusCode);
+                return new List<RedmineReference>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var trackersResponse = JsonSerializer.Deserialize<TrackersResponse>(content, JsonOptions);
+
+            return trackersResponse?.Trackers ?? new List<RedmineReference>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching trackers");
+            return new List<RedmineReference>();
+        }
+    }
 }
 
 public class NewIssueModel

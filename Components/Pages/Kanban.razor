@@ -4,6 +4,7 @@
 @inject CustomAuthenticationStateProvider AuthStateProvider
 @inject AppState AppState
 @inject IJSRuntime JS
+@inject IRedmineService RedmineService
 
 <PageTitle>Tablero Kanban - Redmine</PageTitle>
 
@@ -39,11 +40,33 @@ else if (_isAuthenticated)
                         <span>🔄 Actualizar</span>
                     }
                 </button>
+                <button class="btn btn-primary" @onclick="ShowNewIssueModal">Nueva Tarea</button>
             </div>
         </div>
         
         <div id="kanban-export-area">
             <KanbanBoard @ref="_kanbanBoard" />
+        </div>
+
+        <div class="modal" style="display:@(IsNewIssueModalVisible ? "block" : "none")">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nueva Tarea</h5>
+                        <button type="button" class="btn-close" @onclick="HideNewIssueModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <NewIssueModal 
+                            IsVisible="IsNewIssueModalVisible" 
+                            OnClose="HideNewIssueModal" 
+                            Projects="_projects" 
+                            Trackers="_trackers" 
+                            Statuses="_statuses" 
+                            Priorities="_priorities" 
+                            Users="_users" />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 }
@@ -54,6 +77,12 @@ else if (_isAuthenticated)
     private bool _isRefreshing = false;
     private string _userName = string.Empty;
     private KanbanBoard? _kanbanBoard;
+    private bool IsNewIssueModalVisible = false;
+    private List<RedmineProject> _projects = new();
+    private List<RedmineReference> _trackers = new();
+    private List<RedmineStatus> _statuses = new();
+    private List<RedmineReference> _priorities = new();
+    private List<RedmineReference> _users = new();
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -116,5 +145,49 @@ else if (_isAuthenticated)
     private async Task PrintBoard()
     {
         await JS.InvokeVoidAsync("printKanban", "#kanban-export-area .kanban-board");
+    }
+
+    private async Task ShowNewIssueModal()
+    {
+        Console.WriteLine("ShowNewIssueModal called"); // Debug log
+
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                Console.WriteLine("API key is missing");
+                return;
+            }
+
+            _projects = await RedmineService.GetProjectsAsync(apiKey);
+            Console.WriteLine($"Projects loaded: {_projects.Count}");
+
+            _trackers = await RedmineService.GetTrackersAsync(apiKey);
+            Console.WriteLine($"Trackers loaded: {_trackers.Count}");
+
+            _statuses = await RedmineService.GetStatusesAsync(apiKey);
+            Console.WriteLine($"Statuses loaded: {_statuses.Count}");
+
+            _priorities = await RedmineService.GetPrioritiesAsync(apiKey);
+            Console.WriteLine($"Priorities loaded: {_priorities.Count}");
+
+            _users = await RedmineService.GetUsersAsync(apiKey);
+            Console.WriteLine($"Users loaded: {_users.Count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching data: {ex.Message}");
+        }
+
+        IsNewIssueModalVisible = true;
+        StateHasChanged(); // Trigger UI update
+    }
+
+    private void HideNewIssueModal()
+    {
+        Console.WriteLine("HideNewIssueModal called"); // Debug log
+        IsNewIssueModalVisible = false;
+        StateHasChanged(); // Trigger UI update
     }
 }

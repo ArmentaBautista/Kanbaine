@@ -142,6 +142,13 @@ public interface IRedmineService
     /// <param name="model">Modelo con los datos del nuevo issue</param>
     /// <returns>Resultado de la operación</returns>
     Task<OperationResult> CreateIssueAsync(string apiKey, NewIssueModel model);
+    
+    /// <summary>
+    /// Obtiene los trackers disponibles
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <returns>Lista de trackers</returns>
+    Task<List<RedmineReference>> GetTrackersAsync(string apiKey);
 }
 
 /// <summary>
