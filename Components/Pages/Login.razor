@@ -98,26 +98,9 @@
         {
             errorMessage = "No se pudo conectar con el servidor de Redmine. Verifique su conexión de red.";
         }
-        catch (TaskCanceledException)
-        {
-            errorMessage = "La conexión tardó demasiado. Por favor intente de nuevo.";
-        }
-        catch (Exception)
-        {
-            errorMessage = "Error inesperado al conectar con Redmine.";
-        }
         finally
         {
             isLoading = false;
         }
-    }
-
-    public class LoginModel
-    {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El usuario es requerido")]
-        public string Username { get; set; } = string.Empty;
-        
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida")]
-        public string Password { get; set; } = string.Empty;
     }
 }
