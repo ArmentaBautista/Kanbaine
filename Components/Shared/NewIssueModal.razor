@@ -117,6 +117,18 @@
         {
             var apiKey = AppState.ApiKey;
             if (string.IsNullOrEmpty(apiKey)) return;
+
+            // Debug log to check the model values
+            Console.WriteLine("Submitting new issue with the following data:");
+            Console.WriteLine($"ProjectId: {_model.ProjectId}");
+            Console.WriteLine($"TrackerId: {_model.TrackerId}");
+            Console.WriteLine($"StatusId: {_model.StatusId}");
+            Console.WriteLine($"Subject: {_model.Subject}");
+            Console.WriteLine($"Description: {_model.Description}");
+            Console.WriteLine($"PriorityId: {_model.PriorityId}");
+            Console.WriteLine($"AssignedToId: {_model.AssignedToId}");
+            Console.WriteLine($"DueDate: {_model.DueDate}");
+
             var result = await RedmineService.CreateIssueAsync(apiKey, _model);
             if (result.Success)
             {

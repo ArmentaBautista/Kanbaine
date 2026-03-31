@@ -36,6 +36,10 @@ builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

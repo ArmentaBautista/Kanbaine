@@ -5,6 +5,7 @@ using System.Text.Json;
 using KanbanRedmine.Models;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace KanbanRedmine.Services;
 
@@ -159,7 +160,9 @@ public class RedmineService : IRedmineService
             };
             
             var jsonContent = JsonSerializer.Serialize(payload, JsonOptions);
-            _logger.LogDebug("Payload JSON: {Json}", jsonContent);
+            
+            // Debug log to check the serialized JSON
+            _logger.LogWarning("Serialized JSON payload: {Json}", jsonContent);
             
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             
@@ -617,14 +620,25 @@ public class RedmineService : IRedmineService
         try
         {
             var client = CreateClientWithApiKey(apiKey);
-            var content = JsonSerializer.Serialize(model, JsonOptions);
+
+            // Wrap the model in an "issue" object as required by Redmine API
+            var payload = new
+            {
+                issue = model
+            };
+
+            var content = JsonSerializer.Serialize(payload, JsonOptions);
+
+            // Debug log to check the serialized JSON
+            _logger.LogWarning("Serialized JSON payload: {Json}", content);
+
             var response = await client.PostAsync("issues.json", new StringContent(content, Encoding.UTF8, "application/json"));
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogWarning("Error al crear tarea. Status: {Status}, Response: {Response}", response.StatusCode, errorContent);
-                return OperationResult.Fail("Error al crear tarea");
+                return OperationResult.Fail($"Error al crear tarea. Status: {response.StatusCode}, Response: {errorContent}");
             }
 
             return OperationResult.Ok();
@@ -668,16 +682,32 @@ public class RedmineService : IRedmineService
 public class NewIssueModel
 {
     [Required]
+    [JsonPropertyName("project_id")]
     public int? ProjectId { get; set; }
+
     [Required]
+    [JsonPropertyName("tracker_id")]
     public int? TrackerId { get; set; }
+
     [Required]
+    [JsonPropertyName("status_id")]
     public int? StatusId { get; set; }
+
     [Required]
     [MaxLength(255)]
+    [JsonPropertyName("subject")]
     public string Subject { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
     public string? Description { get; set; }
+
+    [JsonPropertyName("priority_id")]
     public int? PriorityId { get; set; }
+
+    [JsonPropertyName("assigned_to_id")]
     public int? AssignedToId { get; set; }
+
+    [JsonPropertyName("due_date")]
+    [JsonConverter(typeof(JsonDateOnlyConverter))]
     public DateTime? DueDate { get; set; }
 }

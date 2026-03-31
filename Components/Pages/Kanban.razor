@@ -16,21 +16,21 @@ else if (_isAuthenticated)
 {
     <div class="kanban-page">
         <div class="kanban-toolbar">
-            <h1>Tablero Kanban</h1>
+            <h1><span class="user-welcome">@_userName</span></h1>
             <div class="toolbar-actions">
                 <div class="export-buttons">
-                    <button class="btn-export image" @onclick="ExportAsImage" title="Exportar como imagen">
+                    <button class="button-15 btn-primary new-issue" @onclick="ShowNewIssueModal" title="Nueva Tarea">
+                        📄 Nueva Tarea</button>
+                    <button class="button-15 " @onclick="ExportAsImage" title="Exportar como imagen">
                         📷 Imagen
                     </button>
-                    <button class="btn-export pdf" @onclick="ExportAsPdf" title="Exportar como PDF">
+                    <button class="button-15 " @onclick="ExportAsPdf" title="Exportar como PDF">
                         📄 PDF
                     </button>
-                    <button class="btn-export print" @onclick="PrintBoard" title="Imprimir">
+                    <button class="button-15 " @onclick="PrintBoard" title="Imprimir">
                         🖨️ Imprimir
                     </button>
-                </div>
-                <span class="user-welcome">@_userName</span>
-                <button class="btn-refresh" @onclick="RefreshBoard" disabled="@_isRefreshing">
+                    <button class="button-15 " @onclick="RefreshBoard" disabled="@_isRefreshing">
                     @if (_isRefreshing)
                     {
                         <span>Actualizando...</span>
@@ -40,7 +40,11 @@ else if (_isAuthenticated)
                         <span>🔄 Actualizar</span>
                     }
                 </button>
-                <button class="btn btn-primary" @onclick="ShowNewIssueModal">Nueva Tarea</button>
+
+                </div>
+                
+                
+                
             </div>
         </div>
         

@@ -685,22 +685,86 @@
     background: #9ca3af;
 }
 /* /Components/Pages/Kanban.razor.rz.scp.css */
+/* Estilo Apple-like para los botones superiores */
+.button-15[b-7jpp2tln42] {
+    background-image: linear-gradient(#538cbb, #045faa);
+    border: 1px solid #045faa;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    direction: ltr;
+    display: block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.2;
+    min-width: 150px;
+    max-width: 150px;
+    min-height: 25px;
+    max-height: 25px;
+    width: 200px;
+    height: 30px;
+    overflow: hidden;
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    align-items: center;
+}
+
+.button-15:disabled[b-7jpp2tln42] {
+    cursor: default;
+    opacity: .3;
+}
+
+.button-15:hover[b-7jpp2tln42] {
+    background-image: linear-gradient(#51A9EE, #147BCD);
+    border-color: #1482D0;
+    text-decoration: none;
+}
+
+.button-15:active[b-7jpp2tln42] {
+    background-image: linear-gradient(#3D94D9, #0067B9);
+    border-color: #006DBC;
+    outline: none;
+}
+
+.button-15:focus[b-7jpp2tln42] {
+    box-shadow: rgba(131, 192, 253, 0.5) 0 0 0 3px;
+    outline: none;
+}
 /* Estilos de la página Kanban */
 
 .kanban-page[b-7jpp2tln42] {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px);
+    height: 100vh;
     overflow: hidden;
+    padding: 0;
+    margin: 0;
 }
 
 .kanban-toolbar[b-7jpp2tln42] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
     background-color: white;
     border-bottom: 1px solid #e1e5eb;
+}
+/* Ajuste para que el área de tareas ocupe todo el ancho y tenga scroll horizontal */
+#kanban-export-area[b-7jpp2tln42] {
+    flex: 1 1 auto;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 .kanban-toolbar h1[b-7jpp2tln42] {
@@ -717,18 +781,24 @@
 
 .user-welcome[b-7jpp2tln42] {
     color: #666;
-    font-size: 0.9rem;
+    font-size: 1.3rem;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .btn-refresh[b-7jpp2tln42] {
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.8rem;
     background-color: #667eea;
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    direction: ltr;
 }
 
 .btn-refresh:hover:not(:disabled)[b-7jpp2tln42] {
@@ -773,11 +843,12 @@
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 12px;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 0.3rem;
+    text-align: center;
 }
 
 .btn-export:hover[b-7jpp2tln42] {
