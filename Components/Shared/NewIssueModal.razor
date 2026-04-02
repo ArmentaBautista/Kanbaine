@@ -94,7 +94,6 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnIssueCreated { get; set; }
-
     [Parameter] public List<RedmineProject> Projects { get; set; } = new();
     [Parameter] public List<RedmineReference> Priorities { get; set; } = new();
     [Parameter] public List<RedmineReference> Users { get; set; } = new();
@@ -107,7 +106,10 @@
     private void Close()
     {
         if (!_isSaving)
+        {
+            _model = new();
             OnClose.InvokeAsync();
+        }
     }
 
     private async Task HandleValidSubmit()
@@ -130,11 +132,11 @@
             Console.WriteLine($"DueDate: {_model.DueDate}");
 
             var result = await RedmineService.CreateIssueAsync(apiKey, _model);
+            Console.WriteLine($"API call result: Success={result.Success}, ErrorMessage={result.ErrorMessage}");
             if (result.Success)
             {
                 Notification.ShowSuccess("Tarea creada correctamente");
                 await OnIssueCreated.InvokeAsync();
-                Close();
             }
             else
             {
@@ -144,6 +146,7 @@
         finally
         {
             _isSaving = false;
+            Close();
         }
     }
 }
