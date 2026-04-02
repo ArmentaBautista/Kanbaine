@@ -51,6 +51,29 @@
     box-shadow: rgba(131, 192, 253, 0.5) 0 0 0 3px;
     outline: none;
 }
+
+.toolbar-link[b-7jpp2tln42] {
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toolbar-link.active[b-7jpp2tln42] {
+    background-image: linear-gradient(#3D94D9, #0067B9);
+    border-color: #006DBC;
+    box-shadow: rgba(131, 192, 253, 0.35) 0 0 0 2px;
+}
+
+.btn-logout-toolbar[b-7jpp2tln42] {
+    background-image: linear-gradient(#d97b7b, #b32525);
+    border-color: #a41f1f;
+}
+
+.btn-logout-toolbar:hover[b-7jpp2tln42] {
+    background-image: linear-gradient(#e08a8a, #c63030);
+    border-color: #b32525;
+}
 /* Estilos de la página Kanban */
 
 .kanban-page[b-7jpp2tln42] {

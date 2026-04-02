@@ -16,16 +16,20 @@ else if (_isAuthenticated)
     <div class="dashboard-page">
         <div class="dashboard-header">
             <h1>Dashboard</h1>
-            <button class="btn-refresh" @onclick="RefreshData" disabled="@_isRefreshing">
-                @if (_isRefreshing)
-                {
-                    <span>Actualizando...</span>
-                }
-                else
-                {
-                    <span>Actualizar</span>
-                }
-            </button>
+            <div class="dashboard-header-actions">
+                <a href="/kanban" class="btn-refresh nav-button">Kanban</a>
+                <a href="/dashboard" class="btn-refresh nav-button nav-button-active">Dashboard</a>
+                <button class="btn-refresh" @onclick="RefreshData" disabled="@_isRefreshing">
+                    @if (_isRefreshing)
+                    {
+                        <span>Actualizando...</span>
+                    }
+                    else
+                    {
+                        <span>Actualizar</span>
+                    }
+                </button>
+            </div>
         </div>
         
         @if (_errorMessage != null)

@@ -11,6 +11,12 @@
     margin-bottom: 1.5rem;
 }
 
+.dashboard-header-actions[b-ialc7pqjrh] {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .dashboard-header h1[b-ialc7pqjrh] {
     margin: 0;
     font-size: 1.75rem;
@@ -35,6 +41,17 @@
 .btn-refresh:disabled[b-ialc7pqjrh] {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.nav-button[b-ialc7pqjrh] {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button-active[b-ialc7pqjrh] {
+    background: #1d4ed8;
 }
 
 .dashboard-error[b-ialc7pqjrh] {

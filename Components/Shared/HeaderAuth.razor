@@ -11,12 +11,14 @@
     }
     else if (_isAuthenticated)
     {
+         
         <nav class="header-nav">
             <a href="/kanban" class="nav-link @GetActiveClass("/kanban")">Kanban</a>
             <a href="/dashboard" class="nav-link @GetActiveClass("/dashboard")">Dashboard</a>
         </nav>
         <span class="user-info">@_userName</span>
         <button class="btn-logout" @onclick="HandleLogout">Cerrar Sesión</button>
+        
     }
     else
     {

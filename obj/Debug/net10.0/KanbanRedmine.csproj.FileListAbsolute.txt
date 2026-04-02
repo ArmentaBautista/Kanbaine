@@ -90,5 +90,5 @@ D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\8i10a9wbjf-{0}-2tj1sjhksk-2
 D:\github\KanbanRedmine\obj\Debug\net10.0\scopedcss\Components\Shared\NewIssueModal.razor.rz.scp.css
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\2q8uz6akcw-{0}-404cwxoe3c-404cwxoe3c.gz
 D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\ss7gpzzsh1-{0}-ra07n8sz26-ra07n8sz26.gz
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\m2id8dtrio-{0}-tdhntc6mvo-tdhntc6mvo.gz
-D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\v5irlraair-{0}-tdhntc6mvo-tdhntc6mvo.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\m2id8dtrio-{0}-1pcdwllxqt-1pcdwllxqt.gz
+D:\github\KanbanRedmine\obj\Debug\net10.0\compressed\v5irlraair-{0}-1pcdwllxqt-1pcdwllxqt.gz

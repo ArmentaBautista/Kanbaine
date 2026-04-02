@@ -274,6 +274,12 @@
     margin-bottom: 1.5rem;
 }
 
+.dashboard-header-actions[b-ialc7pqjrh] {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
 .dashboard-header h1[b-ialc7pqjrh] {
     margin: 0;
     font-size: 1.75rem;
@@ -298,6 +304,17 @@
 .btn-refresh:disabled[b-ialc7pqjrh] {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.nav-button[b-ialc7pqjrh] {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button-active[b-ialc7pqjrh] {
+    background: #1d4ed8;
 }
 
 .dashboard-error[b-ialc7pqjrh] {
@@ -737,6 +754,29 @@
 .button-15:focus[b-7jpp2tln42] {
     box-shadow: rgba(131, 192, 253, 0.5) 0 0 0 3px;
     outline: none;
+}
+
+.toolbar-link[b-7jpp2tln42] {
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toolbar-link.active[b-7jpp2tln42] {
+    background-image: linear-gradient(#3D94D9, #0067B9);
+    border-color: #006DBC;
+    box-shadow: rgba(131, 192, 253, 0.35) 0 0 0 2px;
+}
+
+.btn-logout-toolbar[b-7jpp2tln42] {
+    background-image: linear-gradient(#d97b7b, #b32525);
+    border-color: #a41f1f;
+}
+
+.btn-logout-toolbar:hover[b-7jpp2tln42] {
+    background-image: linear-gradient(#e08a8a, #c63030);
+    border-color: #b32525;
 }
 /* Estilos de la página Kanban */
 

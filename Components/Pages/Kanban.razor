@@ -19,6 +19,8 @@ else if (_isAuthenticated)
             <h1><span class="user-welcome">@_userName</span></h1>
             <div class="toolbar-actions">
                 <div class="export-buttons">
+                    <a href="/kanban" class="button-15 toolbar-link @GetActiveClass("/kanban")">Kanban</a>
+                    <a href="/dashboard" class="button-15 toolbar-link @GetActiveClass("/dashboard")">Dashboard</a>
                     <button class="button-15 btn-primary new-issue" @onclick="ShowNewIssueModal" title="Nueva Tarea">
                         📄 Nueva Tarea</button>
                     <button class="button-15 " @onclick="ExportAsImage" title="Exportar como imagen">
@@ -40,6 +42,7 @@ else if (_isAuthenticated)
                         <span>🔄 Actualizar</span>
                     }
                 </button>
+                    <button class="button-15 btn-logout-toolbar" @onclick="HandleLogout">Cerrar Sesión</button>
 
                 </div>
                 
@@ -194,6 +197,17 @@ else if (_isAuthenticated)
         Console.WriteLine("HideNewIssueModal called"); // Debug log
         IsNewIssueModalVisible = false;
         StateHasChanged(); // Trigger UI update
+    }
+
+    private string GetActiveClass(string path)
+    {
+        return Navigation.Uri.Contains(path, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthStateProvider.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
 }
