@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KanbanRedmine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a88d8ea54ae2069e3a04d15b0e005bca62696c8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6cb0ad2baf592b42694b28f571e5fe53358bf940")]
 [assembly: System.Reflection.AssemblyProductAttribute("KanbanRedmine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KanbanRedmine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

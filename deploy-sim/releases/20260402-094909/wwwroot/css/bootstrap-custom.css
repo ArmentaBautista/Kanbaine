@@ -1,0 +1,11 @@
+/* Bootstrap Custom Theme */
+:root {
+  --bs-primary: #007bff; /* Azul principal */
+  --bs-secondary: #6c757d; /* Gris */
+  --bs-light: #f8f9fa; /* Blanco claro */
+  --bs-dark: #343a40; /* Gris oscuro */
+  --bs-body-bg: #ffffff; /* Fondo blanco */
+  --bs-body-color: #212529; /* Texto negro */
+}
+
+/* Sobrescribir estilos adicionales si es necesario */
