@@ -1,25 +1,60 @@
+
+# Dotnet build folders
 bin/
 obj/
-bin/Debug/net10.0/KanbanRedmine.dll
-bin/Debug/net10.0/KanbanRedmine.exe
-bin/Debug/net10.0/KanbanRedmine.pdb
-bin/Debug/net10.0/KanbanRedmine.staticwebassets.endpoints.json
-bin/Debug/net10.0/KanbanRedmine.staticwebassets.runtime.json
-obj/Debug/net10.0/compressed/m2id8dtrio-{0}-tdhntc6mvo-tdhntc6mvo.gz
-obj/Debug/net10.0/compressed/v5irlraair-{0}-tdhntc6mvo-tdhntc6mvo.gz
-obj/Debug/net10.0/ref/KanbanRedmine.dll
-obj/Debug/net10.0/staticwebassets.development.json
-obj/Debug/net10.0/staticwebassets.build.json.cache
-obj/Debug/net10.0/staticwebassets.build.json
-obj/Debug/net10.0/staticwebassets.build.endpoints.json
-obj/Debug/net10.0/rpswa.dswa.cache.json
-obj/Debug/net10.0/rjsmrazor.dswa.cache.json
-obj/Debug/net10.0/rjsmcshtml.dswa.cache.json
-obj/Debug/net10.0/rbcswa.dswa.cache.json
-obj/Debug/net10.0/KanbanRedmine.sourcelink.json
-obj/Debug/net10.0/KanbanRedmine.pdb
-obj/Debug/net10.0/KanbanRedmine.dll
-obj/Debug/net10.0/KanbanRedmine.csproj.FileListAbsolute.txt
-obj/Debug/net10.0/KanbanRedmine.AssemblyInfoInputs.cache
-obj/Debug/net10.0/KanbanRedmine.AssemblyInfo.cs
-obj/Debug/net10.0/apphost.exe
+out/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider, VSCode, Visual Studio
+.vs/
+.vscode/
+.idea/
+*.code-workspace
+
+# MacOS y Windows
+.DS_Store
+Thumbs.db
+
+# Logs y temp
+*.log
+*.tmp
+
+# Config locales
+appsettings.Development.json
+*.env
+
+# Publicación y paquetes
+publish/
+*.publish.xml
+.vspscc
+_TestResults/
+TestResults/
+*.ncrunch*
+.nunit/
+coverage/
+*.coverage
+*.coveragexml
+
+# Otros binarios
+*.dll
+*.exe
+*.mdb
+*.pdb
+
+# Node (si por algo tienes node_modules)
+node_modules/
+npm-debug.log
+
+# Auto-generated migrations
+Migrations/
+
+# Secret files
+secrets.json
