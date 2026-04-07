@@ -2,6 +2,7 @@
 @inject AppState AppState
 @inject NotificationService Notification
 
+
 @if (IsVisible)
 {
     <div class="modal-overlay" @onclick="Close">
@@ -180,6 +181,44 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Registrar tiempo -->
+                    <div class="issue-section">
+                        <h3>Registrar tiempo</h3>
+                        <div class="time-entry-form">
+                            <div class="form-group">
+                                <label for="spentOn">Fecha</label>
+                                <input type="date" id="spentOn" @bind="_timeEntrySpentOn" />
+                            </div>
+                            <div class="form-group">
+                                <label for="hours">Horas</label>
+                                <input type="number" id="hours" @bind="_timeEntryHours" step="0.1" min="0" />
+                            </div>
+                            <div class="form-group">
+                                <label for="activity">Actividad</label>
+                                <select id="activity" @bind="_timeEntryActivityId">
+                                    @foreach (var activity in _activities)
+                                    {
+                                        <option value="@activity.Id">@activity.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="comments">Comentarios</label>
+                                <textarea id="comments" @bind="_timeEntryComments" rows="3"></textarea>
+                            </div>
+                            <button class="btn-add-time-entry" @onclick="AddTimeEntry" disabled="@_isSaving">
+                                @if (_isSaving)
+                                {
+                                    <span>Guardando...</span>
+                                }
+                                else
+                                {
+                                    <span>Registrar tiempo</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
                 }
             </div>
         </div>
@@ -206,6 +245,7 @@
     private List<RedmineReference> _projectMembers = new();
     private string _newComment = string.Empty;
     
+    
     // Edición de prioridad
     private bool _isEditingPriority = false;
     private int _selectedPriorityId;
@@ -219,6 +259,13 @@
         if (IsVisible && Issue.Id > 0)
         {
             await LoadIssueDetails();
+
+            // Load time entry activities
+            var apiKey = AppState.ApiKey;
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                _activities = await RedmineService.GetTimeEntryActivitiesAsync(apiKey);
+            }
         }
     }
     
@@ -419,6 +466,51 @@
         }
     }
     
+    private async Task AddTimeEntry()
+    {
+        if (_timeEntryHours <= 0 || _timeEntryActivityId == 0)
+        {
+            Notification.ShowError("Por favor, complete todos los campos obligatorios.");
+            return;
+        }
+
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var apiKey = AppState.ApiKey;
+            if (string.IsNullOrEmpty(apiKey)) return;
+
+            
+
+            var result = await RedmineService.CreateTimeEntryAsync(apiKey, new TimeEntry
+            {
+                IssueId = Issue.Id,
+                SpentOn = _timeEntrySpentOn,
+                Hours =  double.TryParse(_timeEntryHours.ToString(), out var hours) ? hours : 0,
+                ActivityId = _timeEntryActivityId,
+                Comments = _timeEntryComments
+            });
+
+            if (result.Success)
+            {
+                Notification.ShowSuccess("Tiempo registrado correctamente.");
+                _timeEntryHours = 0;
+                _timeEntryComments = string.Empty;
+            }
+            else
+            {
+                Notification.ShowError(result.ErrorMessage ?? "Error al registrar tiempo.");
+            }
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+    
     private string FormatDescription(string text)
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
@@ -427,4 +519,10 @@
         var escaped = System.Web.HttpUtility.HtmlEncode(text);
         return escaped.Replace("\n", "<br />");
     }
+    
+    private DateTime _timeEntrySpentOn = DateTime.Today;
+    private decimal _timeEntryHours;
+    private int _timeEntryActivityId;
+    private string _timeEntryComments = string.Empty;
+    private List<RedmineReference> _activities = new();
 }

@@ -41,6 +41,47 @@ else if (_isAuthenticated)
         }
         else
         {
+                        <!-- Historial de cambios de estado -->
+            <div class="dashboard-card full-width">
+                <h3>Historial de Cambios Recientes</h3>
+                <div class="history-container">
+                    @if (_statusChanges.Any())
+                    {
+                        <div class="history-list">
+                            @foreach (var change in _statusChanges)
+                            {
+                                <div class="history-item">
+                                    <div class="history-time">
+                                        <span class="time-ago">@FormatTimeAgo(change.ChangedOn)</span>
+                                        <span class="time-date">@change.ChangedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    <div class="history-content">
+                                        <div class="history-title">
+                                            <a href="/kanban" class="issue-link">#@change.IssueId</a>
+                                            <span class="issue-subject">@TruncateText(change.IssueSubject, 50)</span>
+                                        </div>
+                                        <div class="history-change">
+                                            <span class="status-badge old">@(change.OldStatus ?? "—")</span>
+                                            <span class="arrow">→</span>
+                                            <span class="status-badge new">@(change.NewStatus ?? "—")</span>
+                                        </div>
+                                        <div class="history-user">por @change.UserName</div>
+                                        @if (!string.IsNullOrWhiteSpace(change.Notes))
+                                        {
+                                            <div class="history-notes">@TruncateText(change.Notes, 100)</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="no-data">No hay cambios de estado recientes</p>
+                    }
+                </div>
+            </div>
+            
             <!-- Tarjetas de resumen -->
             <div class="stats-cards">
                 <div class="stat-card stat-total">
@@ -174,46 +215,7 @@ else if (_isAuthenticated)
                 </div>
             </div>
             
-            <!-- Historial de cambios de estado -->
-            <div class="dashboard-card full-width">
-                <h3>Historial de Cambios Recientes</h3>
-                <div class="history-container">
-                    @if (_statusChanges.Any())
-                    {
-                        <div class="history-list">
-                            @foreach (var change in _statusChanges)
-                            {
-                                <div class="history-item">
-                                    <div class="history-time">
-                                        <span class="time-ago">@FormatTimeAgo(change.ChangedOn)</span>
-                                        <span class="time-date">@change.ChangedOn.ToString("dd/MM/yyyy HH:mm")</span>
-                                    </div>
-                                    <div class="history-content">
-                                        <div class="history-title">
-                                            <a href="/kanban" class="issue-link">#@change.IssueId</a>
-                                            <span class="issue-subject">@TruncateText(change.IssueSubject, 50)</span>
-                                        </div>
-                                        <div class="history-change">
-                                            <span class="status-badge old">@(change.OldStatus ?? "—")</span>
-                                            <span class="arrow">→</span>
-                                            <span class="status-badge new">@(change.NewStatus ?? "—")</span>
-                                        </div>
-                                        <div class="history-user">por @change.UserName</div>
-                                        @if (!string.IsNullOrWhiteSpace(change.Notes))
-                                        {
-                                            <div class="history-notes">@TruncateText(change.Notes, 100)</div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="no-data">No hay cambios de estado recientes</p>
-                    }
-                </div>
-            </div>
+
         }
     </div>
 }

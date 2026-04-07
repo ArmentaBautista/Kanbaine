@@ -149,6 +149,21 @@ public interface IRedmineService
     /// <param name="apiKey">API Key del usuario</param>
     /// <returns>Lista de trackers</returns>
     Task<List<RedmineReference>> GetTrackersAsync(string apiKey);
+
+    /// <summary>
+    /// Crea una nueva entrada de tiempo en Redmine
+    /// </summary>
+    /// <param name="apiKey">API Key del usuario</param>
+    /// <param name="timeEntry">Modelo con los datos de la entrada de tiempo</param>
+    /// <returns>Resultado de la operación</returns>
+    Task<OperationResult> CreateTimeEntryAsync(string apiKey, TimeEntry timeEntry);
+
+    /// <summary>
+    /// Obtiene las actividades de entrada de tiempo desde Redmine.
+    /// </summary>
+    /// <param name="apiKey">Clave API del usuario.</param>
+    /// <returns>Lista de actividades de entrada de tiempo.</returns>
+    Task<List<RedmineReference>> GetTimeEntryActivitiesAsync(string apiKey);
 }
 
 /// <summary>

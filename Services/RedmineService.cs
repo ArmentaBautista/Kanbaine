@@ -667,8 +667,83 @@ public class RedmineService : IRedmineService
     }
 
     /// <summary>
-    /// Fetches the list of trackers from Redmine.
+    /// Crea una entrada de tiempo en Redmine.
     /// </summary>
+    /// <param name="apiKey">Clave API del usuario.</param>
+    /// <param name="timeEntry">Datos de la entrada de tiempo.</param>
+    /// <returns>Resultado de la operación.</returns>
+    public async Task<OperationResult> CreateTimeEntryAsync(string apiKey, TimeEntry timeEntry)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+
+            var payload = new
+            {
+                time_entry = new
+                {
+                    issue_id = timeEntry.IssueId,
+                    spent_on = timeEntry.SpentOn.ToString("yyyy-MM-dd"),
+                    hours = timeEntry.Hours,
+                    activity_id = timeEntry.ActivityId,
+                    comments = timeEntry.Comments
+                }
+            };
+
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("time_entries.json", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new OperationResult { Success = true };
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogWarning("Error al crear entrada de tiempo: {Error}", errorContent);
+            return new OperationResult { Success = false, ErrorMessage = errorContent };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al crear entrada de tiempo");
+            return new OperationResult { Success = false, ErrorMessage = ex.Message };
+        }
+    }
+
+    /// <summary>
+    /// Obtiene las actividades de entrada de tiempo desde Redmine.
+    /// </summary>
+    /// <param name="apiKey">Clave API del usuario.</param>
+    /// <returns>Lista de actividades de entrada de tiempo.</returns>
+    public async Task<List<RedmineReference>> GetTimeEntryActivitiesAsync(string apiKey)
+    {
+        try
+        {
+            var client = CreateClientWithApiKey(apiKey);
+            var response = await client.GetAsync("enumerations/time_entry_activities.json");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Error al obtener actividades de entrada de tiempo. Status: {Status}", response.StatusCode);
+                return new List<RedmineReference>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var activitiesResponse = JsonSerializer.Deserialize<TimeEntryActivitiesResponse>(content, JsonOptions);
+
+            return activitiesResponse?.TimeEntryActivities ?? new List<RedmineReference>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener actividades de entrada de tiempo");
+            return new List<RedmineReference>();
+        }
+    }
+
+    /// <summary>
+    /// Obtiene los trackers disponibles en Redmine.
+    /// </summary>
+    /// <param name="apiKey">Clave API del usuario.</param>
+    /// <returns>Lista de trackers.</returns>
     public async Task<List<RedmineReference>> GetTrackersAsync(string apiKey)
     {
         try
@@ -678,7 +753,7 @@ public class RedmineService : IRedmineService
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Error fetching trackers. Status: {Status}", response.StatusCode);
+                _logger.LogWarning("Error al obtener trackers. Status: {Status}", response.StatusCode);
                 return new List<RedmineReference>();
             }
 
@@ -689,7 +764,7 @@ public class RedmineService : IRedmineService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching trackers");
+            _logger.LogError(ex, "Error al obtener trackers");
             return new List<RedmineReference>();
         }
     }
@@ -726,4 +801,13 @@ public class NewIssueModel
     [JsonPropertyName("due_date")]
     [JsonConverter(typeof(JsonDateOnlyConverter))]
     public DateTime? DueDate { get; set; }
+}
+
+public class TimeEntry
+{
+    public int IssueId { get; set; }
+    public DateTime SpentOn { get; set; }
+    public double Hours { get; set; }
+    public int ActivityId { get; set; }
+    public string Comments { get; set; } = string.Empty;
 }
