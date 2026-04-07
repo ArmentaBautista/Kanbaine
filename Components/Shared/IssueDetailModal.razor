@@ -196,18 +196,18 @@
                             </div>
                             <div class="form-group">
                                 <label for="activity">Actividad</label>
-                                <select id="activity" @bind="_timeEntryActivityId">
+                                <select class="assignee-select" id="activity" @bind="_timeEntryActivityId">
                                     @foreach (var activity in _activities)
                                     {
                                         <option value="@activity.Id">@activity.Name</option>
                                     }
                                 </select>
                             </div>
-                            <div class="form-group">
+                            <div class="add-comment">
                                 <label for="comments">Comentarios</label>
                                 <textarea id="comments" @bind="_timeEntryComments" rows="3"></textarea>
                             </div>
-                            <button class="btn-add-time-entry" @onclick="AddTimeEntry" disabled="@_isSaving">
+                            <button class="btn-add-comment" @onclick="AddTimeEntry" disabled="@_isSaving">
                                 @if (_isSaving)
                                 {
                                     <span>Guardando...</span>
