@@ -125,7 +125,7 @@ public interface IRedmineService
     /// </summary>
     /// <param name="apiKey">API Key del usuario</param>
     /// <returns>Lista de usuarios activos</returns>
-    Task<List<RedmineReference>> GetUsersAsync(string apiKey);
+    Task<List<RedmineReference>> GetUsersAsync();
     
     /// <summary>
     /// Obtiene los issues asignados a un usuario específico

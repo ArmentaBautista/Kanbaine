@@ -10,6 +10,7 @@ public class RedmineSettings
     public string BaseUrl { get; set; } = string.Empty;
     public string ApiPath { get; set; } = "/";
     public int TimeoutSeconds { get; set; } = 30;
+    public string KeyKanbanAdmin { get; set; } = string.Empty;
     
     public string GetApiUrl() => $"{BaseUrl.TrimEnd('/')}{ApiPath}";
 }

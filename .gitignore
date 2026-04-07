@@ -33,6 +33,9 @@ appsettings.Development.json
 
 # Publicación y paquetes
 publish/
+publish*/
+artifacts/
+deploy-sim*/
 *.publish.xml
 .vspscc
 _TestResults/

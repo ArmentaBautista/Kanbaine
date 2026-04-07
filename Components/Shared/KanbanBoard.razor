@@ -144,7 +144,7 @@
             var issuesTask = RedmineService.GetMyIssuesAsync(apiKey);
             var projectsTask = RedmineService.GetProjectsAsync(apiKey);
             var prioritiesTask = RedmineService.GetPrioritiesAsync(apiKey);
-            var usersTask = RedmineService.GetUsersAsync(apiKey);
+            var usersTask = RedmineService.GetUsersAsync();
 
             await Task.WhenAll(statusesTask, issuesTask, projectsTask, prioritiesTask, usersTask);
 

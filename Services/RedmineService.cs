@@ -525,39 +525,55 @@ public class RedmineService : IRedmineService
     }
 
     /// <inheritdoc />
-    public async Task<List<RedmineReference>> GetUsersAsync(string apiKey)
+    public async Task<List<RedmineReference>> GetUsersAsync()
     {
         try
         {
-            var client = CreateClientWithApiKey(apiKey);
+            // Usar la API Key de administrador desde la configuración
+            string adminApiKey = _settings.KeyKanbanAdmin;
+            
+            _logger.LogInformation("Usando API Key de administrador: {ApiKey}", adminApiKey);
+
+            var client = CreateClientWithApiKey(adminApiKey);
+
             var allUsers = new List<RedmineUserInfo>();
             int offset = 0;
             int limit = 100;
             int totalCount;
-            
+
             // Paginar para obtener todos los usuarios
             do
             {
-                var response = await client.GetAsync($"users.json?status=1&limit={limit}&offset={offset}");
-                
+                var url = $"users.json?status=1&limit={limit}&offset={offset}";
+                _logger.LogInformation("Realizando solicitud GET a: {Url}", url);
+
+                var response = await client.GetAsync(url);
+
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Error al obtener usuarios. Status: {Status}", response.StatusCode);
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Error al obtener usuarios. Status: {Status}. Response: {Response}", 
+                        response.StatusCode, errorBody);
                     break;
                 }
-                
+
                 var content = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Respuesta recibida: {Content}", content);
+
                 var usersResponse = JsonSerializer.Deserialize<UsersResponse>(content, JsonOptions);
-                
+
                 if (usersResponse?.Users == null || usersResponse.Users.Count == 0)
+                {
+                    _logger.LogInformation("No se encontraron más usuarios en la respuesta.");
                     break;
-                    
+                }
+
                 allUsers.AddRange(usersResponse.Users);
                 totalCount = usersResponse.TotalCount;
                 offset += limit;
-                
+
             } while (offset < totalCount);
-            
+
             // Convertir a RedmineReference ordenados por nombre
             return allUsers
                 .Select(u => new RedmineReference { Id = u.Id, Name = u.FullName })

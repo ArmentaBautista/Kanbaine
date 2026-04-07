@@ -180,7 +180,7 @@ else if (_isAuthenticated)
             _priorities = await RedmineService.GetPrioritiesAsync(apiKey);
             Console.WriteLine($"Priorities loaded: {_priorities.Count}");
 
-            _users = await RedmineService.GetUsersAsync(apiKey);
+            _users = await RedmineService.GetUsersAsync();
             Console.WriteLine($"Users loaded: {_users.Count}");
         }
         catch (Exception ex)
