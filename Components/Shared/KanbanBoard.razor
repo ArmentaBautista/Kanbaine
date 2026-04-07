@@ -158,7 +158,7 @@
 
             // Crear columnas basadas en los estados
             _columns = statuses
-                .Where(s => !s.IsClosed)
+                //.Where(s => !s.IsClosed)
                 .OrderBy(s => s.Id)
                 .Select(status => new KanbanColumnData
                 {
@@ -166,7 +166,7 @@
                     Issues = _allIssues
                         .Where(i => i.Status?.Id == status.Id)
                         .OrderByDescending(i => i.Priority?.Id ?? 0)
-                        .ThenBy(i => i.DueDate)
+                        .ThenBy(i => status.Id == 1 ? i.DueDate : i.UpdatedOn)
                         .ToList()
                 })
                 .ToList();
