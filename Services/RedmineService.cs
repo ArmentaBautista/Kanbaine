@@ -532,7 +532,7 @@ public class RedmineService : IRedmineService
             // Usar la API Key de administrador desde la configuración
             string adminApiKey = _settings.KeyKanbanAdmin;
             
-            _logger.LogInformation("Usando API Key de administrador: {ApiKey}", adminApiKey);
+            _logger.LogInformation("Usando API Key de administrador para obtener usuarios.");
 
             var client = CreateClientWithApiKey(adminApiKey);
 
