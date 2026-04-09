@@ -29,6 +29,7 @@ Thumbs.db
 
 # Config locales
 appsettings.Development.json
+appsettings.Production.json
 *.env
 
 # Publicación y paquetes
@@ -61,3 +62,9 @@ Migrations/
 
 # Secret files
 secrets.json
+
+# Debug/test snapshots
+*_snapshot.txt
+*_snapshot*.txt
+login_*.txt
+login_no_header.txt
