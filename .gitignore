@@ -30,6 +30,7 @@ Thumbs.db
 # Config locales
 appsettings.Development.json
 appsettings.Production.json
+app.*.json
 *.env
 
 # Publicación y paquetes

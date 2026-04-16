@@ -11,7 +11,7 @@
             <span class="kanban-card-id">#@Issue.Id</span>
             @if (Issue.Tracker != null)
             {
-                <span class="kanban-card-tracker">@Issue.Tracker.Name</span>
+                <span class="kanban-card-tracker tracker-@Issue.Tracker.Name.ToLower().Replace(" ","-")">@Issue.Tracker.Name</span>
             }
         </div>
         

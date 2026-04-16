@@ -1,81 +1,89 @@
-/* Estilo Apple-like para los botones superiores */
+/* ---- Botones flat ---- */
 .button-15 {
-    background-image: linear-gradient(#538cbb, #045faa);
-    border: 1px solid #045faa;
-    border-radius: 4px;
-    box-sizing: border-box;
-    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.38rem 0.8rem;
+    min-height: 32px;
+    background: #4f6bed;
+    border: 1px solid #4361e0;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
     cursor: pointer;
-    direction: ltr;
-    display: block;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: 0;
-    line-height: 1.2;
-    min-width: 150px;
-    max-width: 150px;
-    min-height: 25px;
-    max-height: 25px;
-    width: 200px;
-    height: 30px;
-    overflow: hidden;
-    padding: 0;
-    text-align: center;
-    vertical-align: middle;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    white-space: nowrap;
-    align-items: center;
-}
-
-.button-15:disabled {
-    cursor: default;
-    opacity: .3;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
 .button-15:hover {
-    background-image: linear-gradient(#51A9EE, #147BCD);
-    border-color: #1482D0;
+    background: #4361e0;
+    border-color: #3b55cc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(79, 107, 237, 0.3);
     text-decoration: none;
 }
 
 .button-15:active {
-    background-image: linear-gradient(#3D94D9, #0067B9);
-    border-color: #006DBC;
-    outline: none;
+    background: #3b55cc;
+    border-color: #3349b8;
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .button-15:focus {
-    box-shadow: rgba(131, 192, 253, 0.5) 0 0 0 3px;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 107, 237, 0.25);
+}
+
+.button-15:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .toolbar-link {
     text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .toolbar-link.active {
-    background-image: linear-gradient(#3D94D9, #0067B9);
-    border-color: #006DBC;
-    box-shadow: rgba(131, 192, 253, 0.35) 0 0 0 2px;
+    background: #3b55cc;
+    border-color: #3349b8;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 2px rgba(79, 107, 237, 0.2);
 }
 
 .btn-logout-toolbar {
-    background-image: linear-gradient(#d97b7b, #b32525);
-    border-color: #a41f1f;
+    background: #ef4444;
+    border-color: #dc2626;
 }
 
 .btn-logout-toolbar:hover {
-    background-image: linear-gradient(#e08a8a, #c63030);
-    border-color: #b32525;
+    background: #dc2626;
+    border-color: #b91c1c;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
-/* Estilos de la página Kanban */
 
+.new-issue {
+    background: #10b981;
+    border-color: #059669;
+}
+
+.new-issue:hover {
+    background: #059669;
+    border-color: #047857;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* ---- Página Kanban ---- */
 .kanban-page {
     display: flex;
     flex-direction: column;
@@ -89,24 +97,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
-    background-color: white;
+    padding: 0.5rem 1rem;
+    background: white;
     border-bottom: 1px solid #e1e5eb;
-}
-/* Ajuste para que el área de tareas ocupe todo el ancho y tenga scroll horizontal */
-#kanban-export-area {
-    flex: 1 1 auto;
-    width: 100vw;
-    margin: 0;
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: visible;
 }
 
 .kanban-toolbar h1 {
     margin: 0;
-    font-size: 1.5rem;
-    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: -0.02em;
+}
+
+.user-welcome {
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .toolbar-actions {
@@ -115,36 +122,20 @@
     gap: 1rem;
 }
 
-.user-welcome {
-    color: #666;
-    font-size: 1.3rem;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-.btn-refresh {
-    padding: 0.4rem 0.8rem;
-    background-color: #667eea;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 12px;
-    transition: all 0.2s ease;
+.export-buttons {
     display: flex;
     align-items: center;
-    text-align: center;
-    direction: ltr;
+    gap: 0.35rem;
+    flex-wrap: wrap;
 }
 
-.btn-refresh:hover:not(:disabled) {
-    background-color: #5a6fd6;
-    transform: translateY(-1px);
-}
-
-.btn-refresh:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+#kanban-export-area {
+    flex: 1 1 auto;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 /* Error message */

@@ -9,6 +9,7 @@
      data-status-id="@Column.Status.Id">
     
     <div class="kanban-column-header">
+        <span class="column-status-dot" style="background:@GetStatusColor(Column.Status.Name)"></span>
         <h3 class="kanban-column-title">@Column.Status.Name</h3>
         <span class="kanban-column-count @(Column.IsOverWipLimit ? "over-limit" : "")">
             @Column.Count
@@ -46,6 +47,17 @@
 
     private bool _isDragOver = false;
     private static int? _draggingIssueId;
+
+    private static string GetStatusColor(string? name) => name?.ToLower() switch
+    {
+        "nueva" or "new"          => "#6366f1",
+        "en curso" or "in progress" => "#f59e0b",
+        "resuelta" or "resolved"  => "#10b981",
+        "comentarios" or "feedback" => "#8b5cf6",
+        "cerrada" or "closed"     => "#64748b",
+        "rechazada" or "rejected" => "#ef4444",
+        _                         => "#94a3b8"
+    };
 
     private void HandleCardDragStarted(int issueId)
     {
