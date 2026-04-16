@@ -21,7 +21,7 @@ else if (_isAuthenticated)
                 <div class="export-buttons">
                     <a href="/kanban" class="button-15 toolbar-link @GetActiveClass("/kanban")">Kanban</a>
                     <a href="/dashboard" class="button-15 toolbar-link @GetActiveClass("/dashboard")">Dashboard</a>
-                    <button class="button-15 btn-primary new-issue" @onclick="ShowNewIssueModal" title="Nueva Tarea">
+                    <button class="button-15 new-issue" @onclick="ShowNewIssueModal" title="Nueva Tarea">
                         📄 Nueva Tarea</button>
                     <button class="button-15 " @onclick="ExportAsImage" title="Exportar como imagen">
                         📷 Imagen
@@ -55,27 +55,15 @@ else if (_isAuthenticated)
             <KanbanBoard @ref="_kanbanBoard" />
         </div>
 
-        <div class="modal" style="display:@(IsNewIssueModalVisible ? "block" : "none")">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Nueva Tarea</h5>
-                        <button type="button" class="btn-close" @onclick="HideNewIssueModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <NewIssueModal 
-                            IsVisible="IsNewIssueModalVisible" 
-                            OnClose="HideNewIssueModal"
-                            OnIssueCreated="RefreshBoard"
-                            Projects="_projects" 
-                            Trackers="_trackers" 
-                            Statuses="_statuses" 
-                            Priorities="_priorities" 
-                            Users="_users" />
-                    </div>
-                </div>
-            </div>
-        </div>
+        <NewIssueModal 
+            IsVisible="IsNewIssueModalVisible" 
+            OnClose="HideNewIssueModal"
+            OnIssueCreated="RefreshBoard"
+            Projects="_projects" 
+            Trackers="_trackers" 
+            Statuses="_statuses" 
+            Priorities="_priorities" 
+            Users="_users" />
     </div>
 }
 

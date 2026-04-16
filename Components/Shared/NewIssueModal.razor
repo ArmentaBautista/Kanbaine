@@ -14,78 +14,80 @@
                 <h3>Nueva tarea</h3>
                 <button class="close" @onclick="Close">&times;</button>
             </div>
-            <div class="modal-body">
-                <EditForm Model="_model" OnValidSubmit="HandleValidSubmit">
-                    <DataAnnotationsValidator />
+            <EditForm Model="_model" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
                     <ValidationSummary />
-                    <div class="form-group">
-                        <label>Proyecto</label>
-                        <select class="form-control" @bind="_model.ProjectId" required>
-                            <option value="">Seleccione...</option>
-                            @foreach (var project in Projects)
-                            {
-                                <option value="@project.Id">@project.Name</option>
-                            }
-                        </select>
+                    <div class="ni-fields-grid">
+                        <div class="form-group ni-full">
+                            <label>Título</label>
+                            <input class="form-control" @bind="_model.Subject" required maxlength="255" placeholder="Título de la tarea..." />
+                        </div>
+                        <div class="form-group">
+                            <label>Proyecto</label>
+                            <select class="form-control" @bind="_model.ProjectId" required>
+                                <option value="">Seleccione...</option>
+                                @foreach (var project in Projects)
+                                {
+                                    <option value="@project.Id">@project.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select class="form-control" @bind="_model.TrackerId" required>
+                                <option value="">Seleccione...</option>
+                                @foreach (var tracker in Trackers)
+                                {
+                                    <option value="@tracker.Id">@tracker.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select class="form-control" @bind="_model.StatusId" required>
+                                <option value="">Seleccione...</option>
+                                @foreach (var status in Statuses)
+                                {
+                                    <option value="@status.Id">@status.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Prioridad</label>
+                            <select class="form-control" @bind="_model.PriorityId">
+                                <option value="">Seleccione...</option>
+                                @foreach (var priority in Priorities)
+                                {
+                                    <option value="@priority.Id">@priority.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Asignado a</label>
+                            <select class="form-control" @bind="_model.AssignedToId">
+                                <option value="">Sin asignar</option>
+                                @foreach (var user in Users)
+                                {
+                                    <option value="@user.Id">@user.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de vencimiento</label>
+                            <input type="date" class="form-control" @bind="_model.DueDate" />
+                        </div>
+                        <div class="form-group ni-full">
+                            <label>Descripción</label>
+                            <textarea class="form-control" @bind="_model.Description" rows="3" placeholder="Descripción opcional..."></textarea>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select class="form-control" @bind="_model.TrackerId" required>
-                            <option value="">Seleccione...</option>
-                            @foreach (var tracker in Trackers)
-                            {
-                                <option value="@tracker.Id">@tracker.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select class="form-control" @bind="_model.StatusId" required>
-                            <option value="">Seleccione...</option>
-                            @foreach (var status in Statuses)
-                            {
-                                <option value="@status.Id">@status.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Título</label>
-                        <input class="form-control" @bind="_model.Subject" required maxlength="255" />
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea class="form-control" @bind="_model.Description" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Prioridad</label>
-                        <select class="form-control" @bind="_model.PriorityId">
-                            <option value="">Seleccione...</option>
-                            @foreach (var priority in Priorities)
-                            {
-                                <option value="@priority.Id">@priority.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Asignado a</label>
-                        <select class="form-control" @bind="_model.AssignedToId">
-                            <option value="">Sin asignar</option>
-                            @foreach (var user in Users)
-                            {
-                                <option value="@user.Id">@user.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de vencimiento</label>
-                        <input type="date" class="form-control" @bind="_model.DueDate" />
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary" disabled="@_isSaving">Crear</button>
-                        <button type="button" class="btn btn-secondary" @onclick="Close">Cancelar</button>
-                    </div>
-                </EditForm>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" disabled="@_isSaving">Crear</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Cancelar</button>
+                </div>
+            </EditForm>
         </div>
     </div>
 }

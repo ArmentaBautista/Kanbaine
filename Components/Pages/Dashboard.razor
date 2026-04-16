@@ -53,7 +53,7 @@ else if (_isAuthenticated)
                                 <div class="history-item">
                                     <div class="history-time">
                                         <span class="time-ago">@FormatTimeAgo(change.ChangedOn)</span>
-                                        <span class="time-date">@change.ChangedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                                        <span class="time-date">@change.ChangedOn.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                     </div>
                                     <div class="history-content">
                                         <div class="history-title">

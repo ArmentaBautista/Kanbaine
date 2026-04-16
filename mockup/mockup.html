@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockup Completo - Kanban Redmine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           PROPUESTA DE MEJORA — ESTILO COMPLETO
+           Fuente Inter, Botones flat, Dots de estado,
+           Modales con backdrop blur, Toasts mejorados
+           ============================================ */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f4f5f7;
+            color: #172b4d;
+        }
+
+        /* ============================================
+           NAVEGADOR DE VISTAS (solo mockup)
+           ============================================ */
+        .mockup-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9000;
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; background: #1e293b;
+            border-bottom: 2px solid #4f6bed;
+            font-size: 0.8rem;
+        }
+        .mockup-nav span { color: #94a3b8; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-right: 0.5rem; }
+        .mockup-nav button {
+            padding: 0.35rem 0.8rem; border: 1px solid #475569; border-radius: 5px;
+            background: transparent; color: #cbd5e1; cursor: pointer; font-family: 'Inter', sans-serif;
+            font-size: 0.8rem; font-weight: 500; transition: all 0.15s;
+        }
+        .mockup-nav button:hover { background: #334155; border-color: #64748b; }
+        .mockup-nav button.active { background: #4f6bed; border-color: #4f6bed; color: white; }
+        .mockup-nav .toast-trigger { margin-left: auto; background: #10b981; border-color: #059669; color: white; }
+        .mockup-nav .toast-trigger:hover { background: #059669; }
+
+        .view { display: none; padding-top: 44px; }
+        .view.active { display: block; }
+
+        /* ============================================
+           PAGE: LOGIN
+           ============================================ */
+        .login-container {
+            display: flex; justify-content: center; align-items: center;
+            height: calc(100vh - 44px); background: #f8fafc;
+        }
+        .login-card {
+            background: white; border: 1px solid #e2e8f0; border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08); padding: 2.5rem 2rem;
+            width: 100%; max-width: 400px; text-align: center;
+        }
+        .login-header { margin-bottom: 2rem; }
+        .login-header h1 {
+            color: #1e293b; font-size: 1.6rem; font-weight: 700;
+            margin: 0 0 0.4rem; letter-spacing: -0.03em;
+        }
+        .login-header p { color: #64748b; margin: 0; font-size: 0.9rem; }
+
+        .login-form .form-group { margin-bottom: 1.1rem; text-align: left; }
+        .login-form .form-group label {
+            display: block; margin-bottom: 0.35rem; color: #475569;
+            font-weight: 600; font-size: 0.85rem; letter-spacing: -0.01em;
+        }
+        .login-form .form-control {
+            width: 100%; padding: 0.7rem 0.85rem;
+            border: 1.5px solid #e2e8f0; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-size: 0.95rem; color: #1e293b;
+            transition: all 0.15s;
+        }
+        .login-form .form-control:focus {
+            outline: none; border-color: #4f6bed;
+            box-shadow: 0 0 0 3px rgba(79,107,237,0.12);
+        }
+        .login-form .form-control::placeholder { color: #94a3b8; }
+
+        .login-form .btn-login {
+            width: 100%; padding: 0.7rem; margin-top: 0.5rem;
+            background: #4f6bed; color: white; border: none; border-radius: 8px;
+            font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .login-form .btn-login:hover {
+            background: #4361e0; transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,107,237,0.3);
+        }
+
+        .alert-danger {
+            padding: 0.7rem 1rem; border-radius: 8px; margin-bottom: 1rem;
+            font-size: 0.85rem; background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .kanban-page {
+            display: flex; flex-direction: column;
+            height: calc(100vh - 44px); overflow: hidden;
+        }
+
+        /* ============================================
+           TOOLBAR
+           ============================================ */
+        .kanban-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 1rem; background: white; border-bottom: 1px solid #e1e5eb;
+        }
+        .kanban-toolbar h1 {
+            margin: 0; font-size: 1.2rem; font-weight: 600; color: #333; letter-spacing: -0.02em;
+        }
+        .user-welcome { color: #64748b; font-weight: 500; font-size: 0.9rem; }
+        .toolbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .export-buttons { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
+
+        /* ============================================
+           BOTONES FLAT
+           ============================================ */
+        .button-15 {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+            padding: 0.38rem 0.8rem; min-height: 32px;
+            background: #4f6bed; border: 1px solid #4361e0; border-radius: 6px;
+            color: #fff; font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500;
+            letter-spacing: -0.01em; white-space: nowrap; cursor: pointer; user-select: none;
+            transition: all 0.15s ease; text-decoration: none;
+        }
+        .button-15:hover {
+            background: #4361e0; border-color: #3b55cc;
+            transform: translateY(-1px); box-shadow: 0 2px 8px rgba(79,107,237,0.3);
+        }
+        .button-15:active { background: #3b55cc; transform: translateY(0); box-shadow: none; }
+        .button-15:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+        .toolbar-link.active {
+            background: #3b55cc; border-color: #3349b8;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.15), 0 0 0 2px rgba(79,107,237,0.2);
+        }
+        .btn-logout-toolbar { background: #ef4444; border-color: #dc2626; }
+        .btn-logout-toolbar:hover { background: #dc2626; border-color: #b91c1c; box-shadow: 0 2px 8px rgba(239,68,68,0.3); }
+        .new-issue { background: #10b981; border-color: #059669; }
+        .new-issue:hover { background: #059669; border-color: #047857; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+
+        /* ============================================
+           FILTROS
+           ============================================ */
+        .kanban-filters {
+            display: flex; flex-wrap: wrap; align-items: center;
+            gap: 0.7rem; padding: 0.65rem 1rem;
+            background: white; border-bottom: 1px solid #e2e8f0;
+        }
+        .filter-search {
+            padding: 0.42rem 0.7rem; border: 1px solid #d1d5db; border-radius: 6px;
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; min-width: 170px; transition: all 0.15s;
+        }
+        .filter-search:focus { outline: none; border-color: #4f6bed; box-shadow: 0 0 0 3px rgba(79,107,237,0.1); }
+        .filter-select {
+            padding: 0.42rem 0.7rem; border: 1px solid #d1d5db; border-radius: 6px;
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; background: white; cursor: pointer;
+        }
+        .filter-select:focus { outline: none; border-color: #4f6bed; }
+        .filter-dates { display: flex; align-items: center; gap: 0.35rem; }
+        .filter-dates label { font-size: 0.78rem; color: #64748b; font-weight: 500; }
+        .filter-date {
+            padding: 0.38rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px;
+            font-family: 'Inter', sans-serif; font-size: 0.78rem;
+        }
+        .filter-date:focus { outline: none; border-color: #4f6bed; }
+        .filter-stats { margin-left: auto; font-size: 0.8rem; color: #64748b; font-weight: 500; }
+
+        /* ============================================
+           TABLERO KANBAN
+           ============================================ */
+        #kanban-export-area { flex: 1; overflow-x: auto; overflow-y: visible; display: flex; flex-direction: column; }
+        .kanban-board {
+            display: flex; gap: 0.85rem; padding: 0.85rem;
+            flex: 1; background: #f4f5f7; overflow-x: auto;
+        }
+
+        /* ============================================
+           COLUMNAS + DOTS
+           ============================================ */
+        .kanban-column {
+            flex: 0 0 285px; background: #ebecf0; border-radius: 10px;
+            display: flex; flex-direction: column;
+            max-height: calc(100vh - 225px); overflow: hidden;
+        }
+        .kanban-column-header {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.75rem 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+        .column-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .kanban-column-title { font-weight: 600; font-size: 0.85rem; color: #1e293b; margin: 0; letter-spacing: -0.01em; }
+        .kanban-column-count {
+            margin-left: auto; background: rgba(0,0,0,0.08); color: #64748b;
+            padding: 2px 9px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;
+        }
+        .kanban-column-body {
+            flex: 1; overflow-y: auto; padding: 0.45rem;
+            display: flex; flex-direction: column; gap: 0.45rem;
+        }
+        .kanban-column-body::-webkit-scrollbar { width: 4px; }
+        .kanban-column-body::-webkit-scrollbar-track { background: transparent; }
+        .kanban-column-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .kanban-column-empty {
+            display: flex; justify-content: center; align-items: center;
+            padding: 2rem; color: #94a3b8; font-size: 0.8rem; font-style: italic;
+        }
+
+        /* ============================================
+           TARJETAS
+           ============================================ */
+        .kanban-card {
+            background: white; border-radius: 8px; padding: 0.75rem 0.75rem 0.75rem 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer;
+            transition: all 0.2s ease; border: 1px solid transparent; position: relative;
+        }
+        .kanban-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #4f6bed; transform: translateY(-1px);
+        }
+        .priority-indicator {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 8px 0 0 8px;
+        }
+        .kanban-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem; }
+        .kanban-card-id { font-size: 0.72rem; font-weight: 500; color: #94a3b8; }
+        .kanban-card-tracker {
+            font-size: 0.62rem; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .tracker-errores { background: #fef2f2; color: #dc2626; }
+        .tracker-tareas { background: #eff6ff; color: #2563eb; }
+        .tracker-soporte { background: #f0fdf4; color: #16a34a; }
+        .tracker-implementacion { background: #faf5ff; color: #9333ea; }
+
+        .kanban-card-title { font-size: 0.82rem; font-weight: 500; line-height: 1.4; color: #1e293b; margin-bottom: 0.4rem; }
+        .kanban-card-meta { display: flex; align-items: center; gap: 0.5rem; }
+        .kanban-card-project { font-size: 0.68rem; font-weight: 500; padding: 2px 7px; background: #f1f5f9; color: #64748b; border-radius: 4px; }
+        .kanban-card-due { font-size: 0.68rem; font-weight: 500; color: #94a3b8; }
+        .kanban-card-due.overdue { color: #ef4444; }
+        .kanban-card-due.due-soon { color: #f59e0b; }
+        .kanban-card-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px solid #f1f5f9;
+        }
+        .kanban-card-priority { display: flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 500; }
+        .priority-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+        .priority-low    { color: #10b981; }
+        .priority-normal  { color: #3b82f6; }
+        .priority-high    { color: #f59e0b; }
+        .priority-urgent  { color: #ef4444; }
+        .priority-immediate { color: #8b5cf6; }
+        .priority-low .priority-dot    { background: #10b981; }
+        .priority-normal .priority-dot  { background: #3b82f6; }
+        .priority-high .priority-dot    { background: #f59e0b; }
+        .priority-urgent .priority-dot  { background: #ef4444; }
+        .priority-immediate .priority-dot { background: #8b5cf6; }
+        .priority-low .priority-indicator    { background: #10b981; }
+        .priority-normal .priority-indicator  { background: #3b82f6; }
+        .priority-high .priority-indicator    { background: #f59e0b; }
+        .priority-urgent .priority-indicator  { background: #ef4444; }
+        .priority-immediate .priority-indicator { background: #8b5cf6; }
+
+        .kanban-card-progress { display: flex; align-items: center; gap: 5px; }
+        .progress-bar { width: 45px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #4f6bed; border-radius: 2px; }
+        .progress-text { font-size: 0.62rem; font-weight: 600; color: #94a3b8; }
+
+        /* ============================================
+           MODALES — DETALLE
+           ============================================ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-container {
+            background: white; border-radius: 14px;
+            width: 90%; max-width: 780px; max-height: 85vh;
+            overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            animation: slideIn 0.25s ease;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.9rem 1.4rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .modal-title-section { display: flex; align-items: center; gap: 0.7rem; }
+        .issue-id { font-size: 1rem; font-weight: 600; color: #4f6bed; }
+        .issue-tracker {
+            font-size: 0.68rem; font-weight: 600; padding: 3px 8px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .issue-tracker.tracker-errores { background: #fef2f2; color: #dc2626; }
+        .issue-tracker.tracker-tareas { background: #eff6ff; color: #2563eb; }
+        .issue-tracker.tracker-soporte { background: #f0fdf4; color: #16a34a; }
+        .issue-tracker.tracker-implementacion { background: #faf5ff; color: #9333ea; }
+
+        .modal-close {
+            background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #94a3b8;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; transition: all 0.15s;
+        }
+        .modal-close:hover { background: #fee2e2; color: #ef4444; }
+
+        .modal-body { padding: 1.4rem; overflow-y: auto; flex: 1; }
+        .modal-body::-webkit-scrollbar { width: 5px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        .issue-subject { margin: 0 0 1.2rem; font-size: 1.25rem; font-weight: 600; color: #1e293b; line-height: 1.4; letter-spacing: -0.02em; }
+
+        .issue-meta-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 0.8rem; margin-bottom: 1.4rem; padding: 1rem; background: #f8fafc; border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+        .meta-label { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .meta-value { font-size: 0.875rem; color: #1e293b; font-weight: 500; }
+        .status-badge {
+            display: inline-block; padding: 3px 10px; background: #e0e7ff; color: #4338ca;
+            border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+        }
+        .priority-section, .assignee-section { display: flex; align-items: center; gap: 0.5rem; }
+        .priority-badge { padding: 3px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+        .priority-badge.priority-low { background: #d1fae5; color: #065f46; }
+        .priority-badge.priority-normal { background: #dbeafe; color: #1e40af; }
+        .priority-badge.priority-high { background: #fef3c7; color: #92400e; }
+        .priority-badge.priority-urgent { background: #fee2e2; color: #991b1b; }
+        .priority-badge.priority-immediate { background: #ede9fe; color: #5b21b6; }
+
+        .btn-edit-small {
+            background: none; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px;
+            cursor: pointer; font-size: 0.78rem; transition: all 0.15s; color: #94a3b8;
+        }
+        .btn-edit-small:hover { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+
+        .progress-section { display: flex; align-items: center; gap: 0.5rem; }
+        .progress-bar-large { flex: 1; max-width: 100px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .progress-bar-large .progress-fill-lg { height: 100%; background: #4f6bed; border-radius: 3px; }
+
+        .meta-value.overdue { color: #ef4444; font-weight: 600; }
+        .meta-value.due-soon { color: #f59e0b; }
+        .date-warning { font-size: 0.68rem; margin-left: 0.35rem; }
+
+        .issue-section { margin-bottom: 1.4rem; }
+        .issue-section h3 {
+            margin: 0 0 0.7rem; font-size: 0.88rem; font-weight: 600; color: #475569;
+            padding-bottom: 0.45rem; border-bottom: 1px solid #e2e8f0; letter-spacing: -0.01em;
+        }
+        .issue-description { background: #f8fafc; border-radius: 8px; padding: 0.9rem; border: 1px solid #e2e8f0; }
+        .description-content { line-height: 1.6; color: #334155; font-size: 0.88rem; }
+        .no-content { color: #94a3b8; font-style: italic; margin: 0; font-size: 0.82rem; }
+
+        .comments-list { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 0.9rem; }
+        .comment-item {
+            background: #f8fafc; border-radius: 8px; padding: 0.8rem 0.9rem;
+            border: 1px solid #e2e8f0; border-left: 3px solid #4f6bed;
+        }
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; }
+        .comment-author { font-weight: 600; color: #1e293b; font-size: 0.82rem; }
+        .comment-date { font-size: 0.72rem; color: #94a3b8; }
+        .comment-body { color: #475569; line-height: 1.5; font-size: 0.82rem; }
+
+        .add-comment textarea {
+            width: 100%; padding: 0.65rem; border: 1.5px solid #e2e8f0; border-radius: 8px;
+            resize: vertical; min-height: 66px; font-family: 'Inter', sans-serif; font-size: 0.85rem;
+            margin-bottom: 0.5rem; transition: border-color 0.15s;
+        }
+        .add-comment textarea:focus { outline: none; border-color: #4f6bed; box-shadow: 0 0 0 3px rgba(79,107,237,0.1); }
+
+        .btn-modal-primary {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.48rem 0.9rem; background: #4f6bed; color: white; border: none;
+            border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-modal-primary:hover:not(:disabled) { background: #4361e0; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(79,107,237,0.25); }
+        .btn-modal-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-modal-secondary {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.48rem 0.9rem; background: white; color: #64748b; border: 1px solid #d1d5db;
+            border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .btn-modal-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+
+        .time-entry-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+        .time-entry-form .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .time-entry-form label { font-size: 0.72rem; font-weight: 600; color: #64748b; }
+        .time-entry-form input, .time-entry-form select, .time-entry-form textarea {
+            padding: 0.42rem 0.6rem; border: 1.5px solid #e2e8f0; border-radius: 6px;
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; transition: border-color 0.15s;
+        }
+        .time-entry-form input:focus, .time-entry-form select:focus, .time-entry-form textarea:focus {
+            outline: none; border-color: #4f6bed; box-shadow: 0 0 0 3px rgba(79,107,237,0.1);
+        }
+        .time-entry-form .full-width { grid-column: 1 / -1; }
+
+        /* ---- NEW ISSUE MODAL ---- */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 1000; animation: fadeIn 0.2s ease;
+        }
+        .new-issue-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 1010; width: 500px; max-width: 95vw; max-height: 90vh;
+            background: #fff; border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            animation: slideIn 0.25s ease; overflow: hidden;
+            display: flex; flex-direction: column;
+            border-left: 4px solid #4f6bed;
+        }
+        .new-issue-modal .modal-header {
+            background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+        }
+        .new-issue-modal .modal-header h3 {
+            margin: 0; font-size: 1rem; font-weight: 600; color: #4f6bed; letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .new-issue-modal .modal-header .ni-badge {
+            font-size: 0.65rem; font-weight: 600; padding: 3px 8px; border-radius: 4px;
+            background: #dbeafe; color: #2563eb; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .new-issue-modal .modal-header .close {
+            background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #94a3b8;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; transition: all 0.15s;
+        }
+        .new-issue-modal .modal-header .close:hover { background: #fee2e2; color: #ef4444; }
+        .new-issue-modal .modal-body { padding: 1.2rem 1.4rem; overflow-y: auto; flex: 1; }
+        .new-issue-modal .modal-body::-webkit-scrollbar { width: 5px; }
+        .new-issue-modal .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .new-issue-modal .modal-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .new-issue-modal .ni-section-title {
+            font-size: 0.82rem; font-weight: 600; color: #475569; margin: 0 0 0.75rem;
+            padding-bottom: 0.45rem; border-bottom: 1px solid #e2e8f0; letter-spacing: -0.01em;
+        }
+        .new-issue-modal .ni-fields-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+            padding: 1rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+            margin-bottom: 1.2rem;
+        }
+        .new-issue-modal .ni-fields-grid .form-group { margin-bottom: 0; }
+        .new-issue-modal .ni-fields-grid .form-group.full-span { grid-column: 1 / -1; }
+        .new-issue-modal .form-group { margin-bottom: 0.85rem; }
+        .new-issue-modal .form-group label {
+            display: block; font-size: 0.68rem; font-weight: 600; color: #94a3b8;
+            margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .new-issue-modal .form-group label .required { color: #ef4444; }
+        .new-issue-modal .form-control {
+            width: 100%; padding: 0.48rem 0.7rem;
+            border: 1.5px solid #e2e8f0; border-radius: 8px; background: white;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #1e293b; transition: all 0.15s;
+        }
+        .new-issue-modal .form-control:hover { border-color: #cbd5e1; }
+        .new-issue-modal .form-control:focus {
+            outline: none; border-color: #4f6bed; box-shadow: 0 0 0 3px rgba(79,107,237,0.1);
+        }
+        .new-issue-modal select.form-control { cursor: pointer; }
+        .new-issue-modal textarea.form-control { resize: vertical; min-height: 70px; }
+        .new-issue-modal .ni-description-box {
+            background: #f8fafc; border-radius: 8px; padding: 0.85rem;
+            border: 1px solid #e2e8f0; border-left: 3px solid #4f6bed;
+        }
+        .new-issue-modal .ni-description-box textarea {
+            border: none; background: transparent; padding: 0; width: 100%;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #334155;
+            resize: vertical; min-height: 60px; outline: none; line-height: 1.6;
+        }
+        .new-issue-modal .ni-description-box textarea::placeholder { color: #94a3b8; }
+        .new-issue-modal .modal-footer {
+            display: flex; justify-content: flex-end; gap: 0.5rem;
+            padding: 0.9rem 1.4rem; border-top: 1px solid #e2e8f0; background: #f8fafc;
+        }
+
+        /* ============================================
+           PAGE: DASHBOARD
+           ============================================ */
+        .dashboard-page { padding: 1.25rem; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 44px); }
+        .dashboard-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;
+        }
+        .dashboard-header h1 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b; letter-spacing: -0.03em; }
+        .dashboard-header-actions { display: flex; gap: 0.4rem; align-items: center; }
+
+        .stats-cards {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.9rem; margin-bottom: 1.25rem;
+        }
+        .stat-card {
+            background: white; border-radius: 12px; padding: 1.1rem;
+            display: flex; align-items: center; gap: 0.85rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s;
+            border: 1px solid #f1f5f9;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stat-icon {
+            font-size: 1.6rem; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+        }
+        .stat-total .stat-icon { background: #dbeafe; }
+        .stat-open .stat-icon { background: #fef3c7; }
+        .stat-closed .stat-icon { background: #d1fae5; }
+        .stat-progress .stat-icon { background: #ede9fe; }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: #1e293b; line-height: 1; }
+        .stat-label { font-size: 0.82rem; color: #64748b; margin-top: 0.2rem; font-weight: 500; }
+
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem; margin-bottom: 1.25rem;
+        }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .dashboard-card {
+            background: white; border-radius: 12px; padding: 1.15rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;
+        }
+        .dashboard-card.full-width { grid-column: 1 / -1; }
+        .dashboard-card h3 {
+            margin: 0 0 0.85rem; font-size: 0.95rem; color: #1e293b; font-weight: 600; letter-spacing: -0.01em;
+        }
+
+        .chart-container { display: flex; flex-direction: column; gap: 0.65rem; }
+        .bar-item { display: grid; grid-template-columns: 115px 1fr 36px; gap: 0.65rem; align-items: center; }
+        .bar-label {
+            font-size: 0.82rem; color: #374151; display: flex; align-items: center; gap: 0.5rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .bar-track { height: 22px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; min-width: 4px; }
+        .bar-fill-project { background: #4f6bed; }
+        .bar-value { font-size: 0.82rem; font-weight: 600; color: #1e293b; text-align: right; }
+
+        .priority-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 0.65rem;
+        }
+        .priority-item {
+            background: #f8fafc; border-radius: 8px; padding: 0.9rem;
+            text-align: center; border: 1px solid #e2e8f0; border-left: 4px solid #64748b;
+        }
+        .priority-count { font-size: 1.4rem; font-weight: 700; color: #1e293b; }
+        .priority-name { font-size: 0.72rem; color: #64748b; margin-top: 0.2rem; text-transform: capitalize; font-weight: 500; }
+
+        .burndown-bar { height: 28px; background: #fef3c7; border-radius: 8px; overflow: hidden; }
+        .burndown-closed { height: 100%; background: #10b981; border-radius: 8px; transition: width 0.5s ease; }
+        .burndown-legend { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.78rem; color: #64748b; }
+        .legend-closed::before, .legend-open::before {
+            content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.4rem; vertical-align: middle;
+        }
+        .legend-closed::before { background: #10b981; }
+        .legend-open::before { background: #fef3c7; }
+        .burndown-message { text-align: center; font-size: 0.85rem; margin-top: 0.5rem; }
+        .message-success { color: #059669; font-weight: 600; }
+        .message-warning { color: #d97706; }
+
+        .history-container { max-height: 360px; overflow-y: auto; }
+        .history-container::-webkit-scrollbar { width: 5px; }
+        .history-container::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 3px; }
+        .history-container::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .history-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .history-item {
+            display: grid; grid-template-columns: 95px 1fr; gap: 0.85rem;
+            padding: 0.7rem; background: #f8fafc; border-radius: 8px; border: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        }
+        .history-item:hover { background: #f1f5f9; }
+        .time-ago { font-size: 0.82rem; font-weight: 500; color: #374151; }
+        .time-date { font-size: 0.72rem; color: #94a3b8; }
+        .history-time { display: flex; flex-direction: column; gap: 0.2rem; }
+        .history-content { display: flex; flex-direction: column; gap: 0.35rem; }
+        .history-title { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .issue-link { font-weight: 600; color: #4f6bed; text-decoration: none; }
+        .issue-link:hover { text-decoration: underline; }
+        .issue-subject-text { font-size: 0.85rem; color: #374151; }
+        .history-change { display: flex; align-items: center; gap: 0.4rem; }
+        .status-badge-old { font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: #fee2e2; color: #991b1b; }
+        .status-badge-new { font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: #d1fae5; color: #065f46; }
+        .arrow { color: #94a3b8; font-size: 0.85rem; }
+        .history-user { font-size: 0.78rem; color: #64748b; }
+        .history-notes {
+            font-size: 0.78rem; color: #64748b; background: white; padding: 0.4rem 0.6rem;
+            border-radius: 4px; border-left: 3px solid #e2e8f0;
+        }
+        .no-data { text-align: center; color: #94a3b8; padding: 1.2rem; margin: 0; font-size: 0.85rem; }
+
+        /* ============================================
+           TOASTS
+           ============================================ */
+        .toast-container-fixed {
+            position: fixed; top: 60px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px; max-width: 380px;
+        }
+        .toast {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: toastIn 0.3s ease-out; transition: all 0.3s;
+            font-size: 0.88rem; font-weight: 500;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .toast-success { background: #10b981; color: white; }
+        .toast-error { background: #ef4444; color: white; }
+        .toast-warning { background: #f59e0b; color: white; }
+        .toast-info { background: #4f6bed; color: white; }
+        .toast-icon { font-size: 1.15rem; font-weight: bold; flex-shrink: 0; }
+        .toast-message { flex: 1; line-height: 1.4; }
+        .toast-close-btn {
+            background: none; border: none; color: inherit; font-size: 1.15rem; cursor: pointer;
+            opacity: 0.7; transition: opacity 0.15s; padding: 0; line-height: 1; flex-shrink: 0;
+        }
+        .toast-close-btn:hover { opacity: 1; }
+
+        /* ============================================
+           LOADING SPINNER
+           ============================================ */
+        .loading-spinner {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem;
+        }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid #e2e8f0;
+            border-top: 3px solid #4f6bed; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-message { margin-top: 0.85rem; color: #64748b; font-size: 0.88rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         BARRA DE NAVEGACIÓN DEL MOCKUP
+         ============================================ -->
+    <div class="mockup-nav">
+        <span>Mockup</span>
+        <button class="active" onclick="showView('login')">Login</button>
+        <button onclick="showView('kanban')">Kanban</button>
+        <button onclick="showView('dashboard')">Dashboard</button>
+        <button class="toast-trigger" onclick="showToast()">Mostrar Toast</button>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container-fixed" id="toastContainer"></div>
+
+    <!-- ============================================
+         VIEW: LOGIN
+         ============================================ -->
+    <div class="view active" id="view-login">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>Kanban Redmine</h1>
+                    <p>Inicia sesión con tu cuenta de Redmine</p>
+                </div>
+                <div class="alert-danger" id="loginError" style="display:none">
+                    Usuario o contraseña incorrectos. Verifica tus credenciales de Redmine.
+                </div>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" class="form-control" placeholder="Tu usuario de Redmine">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" class="form-control" placeholder="Tu contraseña">
+                    </div>
+                    <button class="btn-login" onclick="showView('kanban')">Iniciar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         VIEW: KANBAN
+         ============================================ -->
+    <div class="view" id="view-kanban">
+        <div class="kanban-page">
+            <div class="kanban-toolbar">
+                <h1><span class="user-welcome">Héctor Ivan Meza Meza</span></h1>
+                <div class="toolbar-actions">
+                    <div class="export-buttons">
+                        <a href="javascript:void(0)" class="button-15 toolbar-link active" onclick="showView('kanban')">Kanban</a>
+                        <a href="javascript:void(0)" class="button-15 toolbar-link" onclick="showView('dashboard')">Dashboard</a>
+                        <button class="button-15 new-issue" onclick="openModal('newIssueModal','newIssueForm')">📄 Nueva Tarea</button>
+                        <button class="button-15">📷 Imagen</button>
+                        <button class="button-15">📄 PDF</button>
+                        <button class="button-15">🖨️ Imprimir</button>
+                        <button class="button-15">🔄 Actualizar</button>
+                        <button class="button-15 btn-logout-toolbar" onclick="showView('login')">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="kanban-export-area">
+                <div class="kanban-filters">
+                    <input type="text" class="filter-search" placeholder="Buscar tareas...">
+                    <select class="filter-select"><option>Todos los proyectos</option></select>
+                    <select class="filter-select"><option>Todas las prioridades</option></select>
+                    <select class="filter-select"><option>Todos los usuarios</option></select>
+                    <div class="filter-dates">
+                        <label>Vence desde:</label>
+                        <input type="date" class="filter-date">
+                        <label>hasta:</label>
+                        <input type="date" class="filter-date">
+                    </div>
+                    <div class="filter-stats">100 de 100 tareas</div>
+                </div>
+
+                <div class="kanban-board">
+                    <!-- Col: Nueva -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#6366f1"></span>
+                            <h3 class="kanban-column-title">Nueva</h3>
+                            <span class="kanban-column-count">49</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-immediate" onclick="openDetailModal()">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8335</span>
+                                    <span class="kanban-card-tracker tracker-errores">Errores</span>
+                                </div>
+                                <div class="kanban-card-title">CSC TEST 2.10.15.0 - Incidencias/Apertura de crédito</div>
+                                <div class="kanban-card-meta">
+                                    <span class="kanban-card-project">VERSION FIT-GAP ANAL.</span>
+                                    <span class="kanban-card-due overdue">📅 20/03</span>
+                                </div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-immediate"><span class="priority-dot"></span> Inmediata</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-urgent">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#7912</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Tarea 2: Generar script de movimientos de ajuste para cuentas descuadradas</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV_CAZ</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-urgent"><span class="priority-dot"></span> Urgente</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-urgent">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#7911</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Tarea 3: Validar saldos después de corrección de datos</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV_CAZ</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-urgent"><span class="priority-dot"></span> Urgente</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-high">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8371</span>
+                                    <span class="kanban-card-tracker tracker-errores">Errores</span>
+                                </div>
+                                <div class="kanban-card-title">Los registros importados con advertencias de error deben caer como rechazadas</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">Ventanilla+kap</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-high"><span class="priority-dot"></span> Alta</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8125</span>
+                                    <span class="kanban-card-tracker tracker-soporte">Soporte</span>
+                                </div>
+                                <div class="kanban-card-title">Revisión de permisos de usuario para módulo de reportes</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">SOPORTE</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Col: En curso -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#f59e0b"></span>
+                            <h3 class="kanban-column-title">En curso</h3>
+                            <span class="kanban-column-count">5</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-high">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8510</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Revisión de calendario que subió Aimee para gestionar reunión...</div>
+                                <div class="kanban-card-meta">
+                                    <span class="kanban-card-project">IFRS 9 2025</span>
+                                    <span class="kanban-card-due">📅 10/04</span>
+                                </div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-high"><span class="priority-dot"></span> Alta</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8504</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Revisión de cuestionario ERPRISE con Jym</div>
+                                <div class="kanban-card-meta">
+                                    <span class="kanban-card-project">DEV</span>
+                                    <span class="kanban-card-due">📅 10/04</span>
+                                </div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8475</span>
+                                    <span class="kanban-card-tracker tracker-implementacion">Implementación</span>
+                                </div>
+                                <div class="kanban-card-title">Enviar información a CAZ de la funcionalidad de listas REUS</div>
+                                <div class="kanban-card-meta">
+                                    <span class="kanban-card-project">DEV_CAZ</span>
+                                    <span class="kanban-card-due">📅 09/04</span>
+                                </div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                    <div class="kanban-card-progress">
+                                        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+                                        <span class="progress-text">40%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Col: Resuelta -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#10b981"></span>
+                            <h3 class="kanban-column-title">Resuelta</h3>
+                            <span class="kanban-column-count">41</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-high">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8493</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Modificaciones para importación de cuentas contables IFRS9</div>
+                                <div class="kanban-card-meta">
+                                    <span class="kanban-card-project">IFRS 9 2025</span>
+                                    <span class="kanban-card-due">📅 30/04</span>
+                                </div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-high"><span class="priority-dot"></span> Alta</span>
+                                    <div class="kanban-card-progress">
+                                        <div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>
+                                        <span class="progress-text">70%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#7436</span>
+                                    <span class="kanban-card-tracker tracker-errores">Errores</span>
+                                </div>
+                                <div class="kanban-card-title">En el ticket sigue apareciendo la firma de socio en los depósitos.</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV_CDP</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                </div>
+                            </div>
+                            <div class="kanban-card priority-low">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#7210</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Actualizar documentación de API interna para integraciones</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-low"><span class="priority-dot"></span> Baja</span>
+                                    <div class="kanban-card-progress">
+                                        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+                                        <span class="progress-text">100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Col: Comentarios -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#8b5cf6"></span>
+                            <h3 class="kanban-column-title">Comentarios</h3>
+                            <span class="kanban-column-count">2</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#8102</span>
+                                    <span class="kanban-card-tracker tracker-soporte">Soporte</span>
+                                </div>
+                                <div class="kanban-card-title">Solicitud de acceso a módulo de tesorería</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">SOPORTE</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Col: Cerrada -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#64748b"></span>
+                            <h3 class="kanban-column-title">Cerrada</h3>
+                            <span class="kanban-column-count">3</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-normal">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#7050</span>
+                                    <span class="kanban-card-tracker tracker-tareas">Tareas</span>
+                                </div>
+                                <div class="kanban-card-title">Configuración de ambiente QA para pruebas de regresión</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-normal"><span class="priority-dot"></span> Normal</span>
+                                    <div class="kanban-card-progress">
+                                        <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+                                        <span class="progress-text">100%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Col: Rechazada -->
+                    <div class="kanban-column">
+                        <div class="kanban-column-header">
+                            <span class="column-status-dot" style="background:#ef4444"></span>
+                            <h3 class="kanban-column-title">Rechazada</h3>
+                            <span class="kanban-column-count">1</span>
+                        </div>
+                        <div class="kanban-column-body">
+                            <div class="kanban-card priority-low">
+                                <div class="priority-indicator"></div>
+                                <div class="kanban-card-header">
+                                    <span class="kanban-card-id">#6890</span>
+                                    <span class="kanban-card-tracker tracker-implementacion">Implementación</span>
+                                </div>
+                                <div class="kanban-card-title">Propuesta de migración a nuevo framework de reportes</div>
+                                <div class="kanban-card-meta"><span class="kanban-card-project">DEV</span></div>
+                                <div class="kanban-card-footer">
+                                    <span class="kanban-card-priority priority-low"><span class="priority-dot"></span> Baja</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         VIEW: DASHBOARD
+         ============================================ -->
+    <div class="view" id="view-dashboard">
+        <div class="dashboard-page">
+            <div class="dashboard-header">
+                <h1>Dashboard</h1>
+                <div class="dashboard-header-actions">
+                    <a href="javascript:void(0)" class="button-15 toolbar-link" onclick="showView('kanban')">Kanban</a>
+                    <a href="javascript:void(0)" class="button-15 toolbar-link active">Dashboard</a>
+                    <button class="button-15">🔄 Actualizar</button>
+                </div>
+            </div>
+
+            <!-- Historial -->
+            <div class="dashboard-card full-width" style="margin-bottom:1.25rem">
+                <h3>Historial de Cambios Recientes</h3>
+                <div class="history-container">
+                    <div class="history-list">
+                        <div class="history-item">
+                            <div class="history-time">
+                                <span class="time-ago">Hace 2h</span>
+                                <span class="time-date">11/04/2026 10:30</span>
+                            </div>
+                            <div class="history-content">
+                                <div class="history-title">
+                                    <a href="#" class="issue-link">#8510</a>
+                                    <span class="issue-subject-text">Revisión de calendario que subió Aimee</span>
+                                </div>
+                                <div class="history-change">
+                                    <span class="status-badge-old">Nueva</span>
+                                    <span class="arrow">→</span>
+                                    <span class="status-badge-new">En curso</span>
+                                </div>
+                                <div class="history-user">por Héctor Meza</div>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">
+                                <span class="time-ago">Hace 5h</span>
+                                <span class="time-date">11/04/2026 07:15</span>
+                            </div>
+                            <div class="history-content">
+                                <div class="history-title">
+                                    <a href="#" class="issue-link">#8493</a>
+                                    <span class="issue-subject-text">Modificaciones importación cuentas IFRS9</span>
+                                </div>
+                                <div class="history-change">
+                                    <span class="status-badge-old">En curso</span>
+                                    <span class="arrow">→</span>
+                                    <span class="status-badge-new">Resuelta</span>
+                                </div>
+                                <div class="history-user">por Admin</div>
+                                <div class="history-notes">Se completó la importación de cuentas contables y se validaron los registros.</div>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">
+                                <span class="time-ago">Ayer</span>
+                                <span class="time-date">10/04/2026 16:45</span>
+                            </div>
+                            <div class="history-content">
+                                <div class="history-title">
+                                    <a href="#" class="issue-link">#7050</a>
+                                    <span class="issue-subject-text">Configuración ambiente QA</span>
+                                </div>
+                                <div class="history-change">
+                                    <span class="status-badge-old">Resuelta</span>
+                                    <span class="arrow">→</span>
+                                    <span class="status-badge-new">Cerrada</span>
+                                </div>
+                                <div class="history-user">por Admin</div>
+                            </div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">
+                                <span class="time-ago">Ayer</span>
+                                <span class="time-date">10/04/2026 11:20</span>
+                            </div>
+                            <div class="history-content">
+                                <div class="history-title">
+                                    <a href="#" class="issue-link">#8475</a>
+                                    <span class="issue-subject-text">Enviar información REUS a CAZ</span>
+                                </div>
+                                <div class="history-change">
+                                    <span class="status-badge-old">Nueva</span>
+                                    <span class="arrow">→</span>
+                                    <span class="status-badge-new">En curso</span>
+                                </div>
+                                <div class="history-user">por Héctor Meza</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-cards">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <div class="stat-value">100</div>
+                        <div class="stat-label">Total de Tareas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-open">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-value">56</div>
+                        <div class="stat-label">Tareas Abiertas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-closed">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-value">44</div>
+                        <div class="stat-label">Tareas Cerradas</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-progress">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <div class="stat-value">44%</div>
+                        <div class="stat-label">Completadas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Por Estado -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Estado</h3>
+                    <div class="chart-container">
+                        <div class="bar-item">
+                            <div class="bar-label"><span class="status-dot" style="background:#6366f1"></span> Nueva</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:49%;background:#6366f1"></div></div>
+                            <div class="bar-value">49</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label"><span class="status-dot" style="background:#10b981"></span> Resuelta</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:41%;background:#10b981"></div></div>
+                            <div class="bar-value">41</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label"><span class="status-dot" style="background:#f59e0b"></span> En curso</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:5%;background:#f59e0b"></div></div>
+                            <div class="bar-value">5</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label"><span class="status-dot" style="background:#64748b"></span> Cerrada</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:3%;background:#64748b"></div></div>
+                            <div class="bar-value">3</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label"><span class="status-dot" style="background:#8b5cf6"></span> Comentarios</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:2%;background:#8b5cf6"></div></div>
+                            <div class="bar-value">2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Por Proyecto -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Proyecto</h3>
+                    <div class="chart-container">
+                        <div class="bar-item">
+                            <div class="bar-label">DEV_CAZ</div>
+                            <div class="bar-track"><div class="bar-fill bar-fill-project" style="width:35%"></div></div>
+                            <div class="bar-value">35</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">IFRS 9 2025</div>
+                            <div class="bar-track"><div class="bar-fill bar-fill-project" style="width:25%"></div></div>
+                            <div class="bar-value">25</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">DEV_CDP</div>
+                            <div class="bar-track"><div class="bar-fill bar-fill-project" style="width:18%"></div></div>
+                            <div class="bar-value">18</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">SOPORTE</div>
+                            <div class="bar-track"><div class="bar-fill bar-fill-project" style="width:12%"></div></div>
+                            <div class="bar-value">12</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">DEV</div>
+                            <div class="bar-track"><div class="bar-fill bar-fill-project" style="width:10%"></div></div>
+                            <div class="bar-value">10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Por Prioridad -->
+                <div class="dashboard-card">
+                    <h3>Tareas por Prioridad</h3>
+                    <div class="priority-grid">
+                        <div class="priority-item" style="border-left-color:#8b5cf6">
+                            <div class="priority-count">5</div>
+                            <div class="priority-name">Inmediata</div>
+                        </div>
+                        <div class="priority-item" style="border-left-color:#ef4444">
+                            <div class="priority-count">12</div>
+                            <div class="priority-name">Urgente</div>
+                        </div>
+                        <div class="priority-item" style="border-left-color:#f59e0b">
+                            <div class="priority-count">28</div>
+                            <div class="priority-name">Alta</div>
+                        </div>
+                        <div class="priority-item" style="border-left-color:#3b82f6">
+                            <div class="priority-count">40</div>
+                            <div class="priority-name">Normal</div>
+                        </div>
+                        <div class="priority-item" style="border-left-color:#10b981">
+                            <div class="priority-count">15</div>
+                            <div class="priority-name">Baja</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progreso -->
+                <div class="dashboard-card">
+                    <h3>Progreso de Tareas</h3>
+                    <div style="padding:0.5rem 0">
+                        <div class="burndown-bar"><div class="burndown-closed" style="width:44%"></div></div>
+                        <div class="burndown-legend">
+                            <span class="legend-closed">Cerradas: 44</span>
+                            <span class="legend-open">Abiertas: 56</span>
+                        </div>
+                        <div class="burndown-message"><span class="message-warning">Hay trabajo pendiente</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MODAL: Detalle de Tarea
+         ============================================ -->
+    <div class="modal-overlay" id="detailModal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <span class="issue-id">#8335</span>
+                    <span class="issue-tracker tracker-errores">Errores</span>
+                </div>
+                <button class="modal-close" onclick="document.getElementById('detailModal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h2 class="issue-subject">CSC TEST 2.10.15.0 - Incidencias/Apertura de crédito</h2>
+                <div class="issue-meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Estado</span>
+                        <span class="status-badge">Nueva</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Prioridad</span>
+                        <div class="priority-section">
+                            <span class="priority-badge priority-immediate">Inmediata</span>
+                            <button class="btn-edit-small">✎</button>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Proyecto</span>
+                        <span class="meta-value">VERSION FIT-GAP ANAL.</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Asignado a</span>
+                        <div class="assignee-section">
+                            <span class="meta-value">Héctor Meza</span>
+                            <button class="btn-edit-small">✎</button>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Autor</span>
+                        <span class="meta-value">Admin</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Progreso</span>
+                        <div class="progress-section">
+                            <div class="progress-bar-large"><div class="progress-fill-lg" style="width:0%"></div></div>
+                            <span class="meta-value">0%</span>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Fecha límite</span>
+                        <span class="meta-value overdue">20/03/2026 <span class="date-warning">⚠ Vencida</span></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Horas estimadas</span>
+                        <span class="meta-value">8 h</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Creado</span>
+                        <span class="meta-value">18/03/2026 09:15</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Actualizado</span>
+                        <span class="meta-value">20/03/2026 14:20</span>
+                    </div>
+                </div>
+                <div class="issue-section">
+                    <h3>Descripción</h3>
+                    <div class="issue-description">
+                        <div class="description-content">Revisión de incidencias encontradas durante las pruebas del módulo CSC TEST versión 2.10.15.0 relacionadas con el proceso de apertura de crédito. Se requiere validación del flujo completo.</div>
+                    </div>
+                </div>
+                <div class="issue-section">
+                    <h3>Comentarios (2)</h3>
+                    <div class="comments-list">
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-author">Admin</span>
+                                <span class="comment-date">19/03/2026 10:30</span>
+                            </div>
+                            <div class="comment-body">Se requiere validar el flujo completo de apertura de crédito con los nuevos parámetros.</div>
+                        </div>
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-author">Héctor Meza</span>
+                                <span class="comment-date">20/03/2026 14:20</span>
+                            </div>
+                            <div class="comment-body">Revisado. Se encontraron 3 incidencias menores que se detallan en el reporte adjunto.</div>
+                        </div>
+                    </div>
+                    <div class="add-comment">
+                        <textarea placeholder="Escribe un comentario..." rows="3"></textarea>
+                        <button class="btn-modal-primary">Agregar comentario</button>
+                    </div>
+                </div>
+                <div class="issue-section">
+                    <h3>Registrar tiempo</h3>
+                    <div class="time-entry-form">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" value="2026-04-11">
+                        </div>
+                        <div class="form-group">
+                            <label>Horas</label>
+                            <input type="number" step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div class="form-group">
+                            <label>Actividad</label>
+                            <select><option>Desarrollo</option><option>Diseño</option><option>Soporte</option></select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Comentarios</label>
+                            <textarea rows="2" placeholder="Descripción del tiempo..." style="width:100%"></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top:0.7rem">
+                        <button class="btn-modal-primary">Registrar tiempo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MODAL: Nueva Tarea
+         ============================================ -->
+    <div class="modal-backdrop" id="newIssueModal" style="display:none" onclick="closeModal('newIssueModal','newIssueForm')"></div>
+    <div class="new-issue-modal" id="newIssueForm" style="display:none">
+        <div class="modal-header">
+            <h3>Nueva tarea <span class="ni-badge">Crear</span></h3>
+            <button class="close" onclick="closeModal('newIssueModal','newIssueForm')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h4 class="ni-section-title">Información general</h4>
+            <div class="ni-fields-grid">
+                <div class="form-group">
+                    <label>Proyecto <span class="required">*</span></label>
+                    <select class="form-control"><option value="">Seleccione...</option><option>DEV_CAZ</option><option>DEV_CDP</option><option>IFRS 9 2025</option><option>SOPORTE</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo <span class="required">*</span></label>
+                    <select class="form-control"><option value="">Seleccione...</option><option>Errores</option><option>Tareas</option><option>Soporte</option><option>Implementación</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Estado <span class="required">*</span></label>
+                    <select class="form-control"><option value="">Seleccione...</option><option>Nueva</option><option>En curso</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Prioridad</label>
+                    <select class="form-control"><option value="">Seleccione...</option><option>Baja</option><option>Normal</option><option>Alta</option><option>Urgente</option><option>Inmediata</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Asignado a</label>
+                    <select class="form-control"><option>Sin asignar</option><option>Héctor Meza</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de vencimiento</label>
+                    <input type="date" class="form-control">
+                </div>
+                <div class="form-group full-span">
+                    <label>Título <span class="required">*</span></label>
+                    <input class="form-control" placeholder="Título de la tarea">
+                </div>
+            </div>
+
+            <h4 class="ni-section-title">Descripción</h4>
+            <div class="ni-description-box">
+                <textarea rows="3" placeholder="Descripción detallada de la tarea..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal-primary" onclick="closeModal('newIssueModal','newIssueForm');showToastMsg('success','Tarea creada correctamente')">Crear</button>
+            <button class="btn-modal-secondary" onclick="closeModal('newIssueModal','newIssueForm')">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        function showView(name) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.mockup-nav button:not(.toast-trigger)').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + name).classList.add('active');
+            document.querySelectorAll('.mockup-nav button').forEach(b => {
+                if (b.textContent.trim().toLowerCase() === name.toLowerCase()) b.classList.add('active');
+            });
+        }
+        function openModal(backdropId, formId) {
+            document.getElementById(backdropId).style.display = 'block';
+            document.getElementById(formId).style.display = 'flex';
+        }
+        function closeModal(backdropId, formId) {
+            document.getElementById(backdropId).style.display = 'none';
+            document.getElementById(formId).style.display = 'none';
+        }
+        function openDetailModal() {
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        let toastCount = 0;
+        const toastTypes = ['success', 'error', 'warning', 'info'];
+        const toastMessages = [
+            'Tarea actualizada correctamente',
+            'Error al conectar con Redmine',
+            'La tarea #8335 vence pronto',
+            'Datos sincronizados'
+        ];
+        const toastIcons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+
+        function showToast() {
+            const idx = toastCount % 4;
+            showToastMsg(toastTypes[idx], toastMessages[idx]);
+            toastCount++;
+        }
+
+        function showToastMsg(type, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = '<span class="toast-icon">' + toastIcons[type] + '</span>' +
+                '<span class="toast-message">' + message + '</span>' +
+                '<button class="toast-close-btn" onclick="this.parentElement.remove()">&times;</button>';
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4000);
+        }
+    </script>
+</body>
+</html>

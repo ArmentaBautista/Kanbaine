@@ -12,7 +12,7 @@
                     <span class="issue-id">#@Issue.Id</span>
                     @if (Issue.Tracker != null)
                     {
-                        <span class="issue-tracker">@Issue.Tracker.Name</span>
+                        <span class="issue-tracker tracker-@Issue.Tracker.Name.ToLower().Replace(" ","-")">@Issue.Tracker.Name</span>
                     }
                 </div>
                 <button class="modal-close" @onclick="Close">&times;</button>
@@ -118,11 +118,11 @@
                         }
                         <div class="meta-item">
                             <span class="meta-label">Creado</span>
-                            <span class="meta-value">@Issue.CreatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                            <span class="meta-value">@Issue.CreatedOn.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Actualizado</span>
-                            <span class="meta-value">@Issue.UpdatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                            <span class="meta-value">@Issue.UpdatedOn.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                     </div>
                     
@@ -153,7 +153,7 @@
                                         <div class="comment-item">
                                             <div class="comment-header">
                                                 <span class="comment-author">@(journal.User?.Name ?? "Usuario")</span>
-                                                <span class="comment-date">@journal.CreatedOn.ToString("dd/MM/yyyy HH:mm")</span>
+                                                <span class="comment-date">@journal.CreatedOn.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                             </div>
                                             <div class="comment-body">@((MarkupString)FormatDescription(journal.Notes!))</div>
                                         </div>
@@ -186,26 +186,28 @@
                     <div class="issue-section">
                         <h3>Registrar tiempo</h3>
                         <div class="time-entry-form">
-                            <div class="form-group">
-                                <label for="spentOn">Fecha</label>
-                                <input type="date" id="spentOn" @bind="_timeEntrySpentOn" />
-                            </div>
-                            <div class="form-group">
-                                <label for="hours">Horas</label>
-                                <input type="number" id="hours" @bind="_timeEntryHours" step="0.1" min="0" />
+                            <div class="time-entry-row">
+                                <div class="form-group">
+                                    <label for="spentOn">Fecha</label>
+                                    <input type="date" id="spentOn" @bind="_timeEntrySpentOn" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="hours">Horas</label>
+                                    <input type="number" id="hours" @bind="_timeEntryHours" step="0.1" min="0" />
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="activity">Actividad</label>
-                                <select class="assignee-select" id="activity" @bind="_timeEntryActivityId">
+                                <select id="activity" @bind="_timeEntryActivityId">
                                     @foreach (var activity in _activities)
                                     {
                                         <option value="@activity.Id">@activity.Name</option>
                                     }
                                 </select>
                             </div>
-                            <div class="add-comment">
-                                <label for="comments">Comentarios</label>
-                                <textarea id="comments" @bind="_timeEntryComments" rows="3"></textarea>
+                            <div class="form-group">
+                                <label for="teComments">Comentarios</label>
+                                <textarea id="teComments" @bind="_timeEntryComments" rows="3"></textarea>
                             </div>
                             <button class="btn-add-comment" @onclick="AddTimeEntry" disabled="@_isSaving">
                                 @if (_isSaving)

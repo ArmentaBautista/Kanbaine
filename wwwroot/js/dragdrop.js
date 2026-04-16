@@ -2,9 +2,64 @@
 // Funciones auxiliares para Drag & Drop
 // ============================================
 
-/**
- * Inicializa el sistema de drag & drop para el tablero Kanban
- */
+// -------------------------------------------------------
+// Auto-scroll horizontal durante drag (activo siempre,
+// sin necesidad de llamar a initialize desde Blazor)
+// -------------------------------------------------------
+(function () {
+    const SCROLL_ZONE  = 120;  // px desde el borde del viewport
+    const SCROLL_SPEED = 12;   // px base por tick (~60fps)
+    let scrollInterval = null;
+    let currentClientX = 0;
+
+    function stopAutoScroll() {
+        if (scrollInterval !== null) {
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+        }
+    }
+
+    function scrollTick() {
+        const board = document.querySelector('.kanban-board');
+        if (!board) { stopAutoScroll(); return; }
+
+        const vw = window.innerWidth;
+        const distRight = vw - currentClientX;
+        const distLeft  = currentClientX;
+        let delta = 0;
+
+        if (distRight < SCROLL_ZONE) {
+            const ratio = 1 - (distRight / SCROLL_ZONE);
+            delta = Math.ceil(SCROLL_SPEED * (1 + ratio * 2));
+        } else if (distLeft < SCROLL_ZONE) {
+            const ratio = 1 - (distLeft / SCROLL_ZONE);
+            delta = -Math.ceil(SCROLL_SPEED * (1 + ratio * 2));
+        }
+
+        if (delta !== 0) {
+            board.scrollBy({ left: delta, behavior: 'instant' });
+        } else {
+            stopAutoScroll();
+        }
+    }
+
+    document.addEventListener('dragover', function (e) {
+        currentClientX = e.clientX;
+        const inZone = e.clientX < SCROLL_ZONE ||
+                       (window.innerWidth - e.clientX) < SCROLL_ZONE;
+        if (inZone) {
+            if (scrollInterval === null) {
+                scrollInterval = setInterval(scrollTick, 16);
+            }
+        } else {
+            stopAutoScroll();
+        }
+    });
+
+    document.addEventListener('dragend',  stopAutoScroll);
+    document.addEventListener('drop',     stopAutoScroll);
+})();
+
 window.KanbanDragDrop = {
     /**
      * Referencia al componente .NET para callbacks
@@ -21,7 +76,7 @@ window.KanbanDragDrop = {
     },
 
     /**
-     * Limpia las referencias al desmontar el componente
+     * Limpia referencias al desmontar el componente
      */
     dispose: function () {
         this.dotNetHelper = null;
@@ -47,6 +102,7 @@ window.KanbanDragDrop = {
      */
     onDragEnd: function (event) {
         event.target.classList.remove('dragging');
+        this._stopAutoScroll();
         
         // Limpiar cualquier indicador visual
         document.querySelectorAll('.drag-over').forEach(el => {
@@ -55,13 +111,13 @@ window.KanbanDragDrop = {
     },
 
     /**
-     * Maneja cuando un elemento pasa sobre una columna
+     * Maneja cuando un elemento pasa sobre una columna (no usado para scroll, mantenido por compatibilidad)
      * @param {DragEvent} event - Evento de arrastre
      */
     onDragOver: function (event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
-        
+
         const column = event.target.closest('.kanban-column');
         if (column) {
             column.classList.add('drag-over');
